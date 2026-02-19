@@ -1,0 +1,351 @@
+%% ============================================================
+%% L1: System Context – Full Stack FastAPI Platform
+%% ============================================================
+%% SCOPE: urn:c4:system:fullstack-fastapi-platform
+
+graph TD
+
+  subgraph users["Users"]
+    user["👤 End User\n[Person]\nRegular application user who\nmanages personal items"]
+    admin_user["👤 Administrator\n[Person]\nSuperuser with full access\nto manage all users and items"]
+  end
+
+  subgraph system_boundary["Full Stack FastAPI Platform"]
+    system["Full Stack FastAPI Platform\n[Software System]\nWeb application for managing\nusers and items with JWT\nauthentication and role-based access"]
+  end
+
+  subgraph external["External Systems"]
+    smtp["📧 SMTP Server\n[External System]\nEmail delivery service for\npassword recovery and notifications"]
+    sentry["📊 Sentry\n[External System]\nError monitoring, tracing,\nand performance tracking"]
+  end
+
+  user -- "Browses dashboard,\nmanages own items\n[HTTPS]" --> system
+  admin_user -- "Administers users & items,\nsends test emails\n[HTTPS]" --> system
+  system -- "Sends transactional emails\n(password recovery, new account)\n[SMTP/TLS]" --> smtp
+  system -- "Reports errors\nand performance traces\n[HTTPS]" --> sentry
+
+%% ============================================================
+%% STYLES – L1
+%% ============================================================
+  classDef person fill:#08427b,stroke:#052e56,color:#fff
+  classDef system fill:#1168bd,stroke:#0b4884,color:#fff
+  classDef external fill:#999999,stroke:#6b6b6b,color:#fff
+  classDef boundary fill:none,stroke:#444,stroke-dasharray:5 5,color:#444
+
+  class user,admin_user person
+  class system system
+  class smtp,sentry external
+
+---
+
+%% ============================================================
+%% L2: Container – Full Stack FastAPI Platform
+%% ============================================================
+%% SCOPE: urn:c4:system:fullstack-fastapi-platform
+
+graph TD
+
+  subgraph users["Users"]
+    user["👤 End User\n[Person]"]
+    admin_user["👤 Administrator\n[Person]"]
+  end
+
+  subgraph system_boundary["Full Stack FastAPI Platform"]
+    %% KIND: boundary
+    traefik["🔀 Traefik\n[Container: Traefik 3.6]\nReverse proxy, TLS termination,\nroute-based load balancing"]
+
+    %% KIND: boundary
+    frontend["⚛️ React SPA\n[Container: TypeScript, React 19, Vite]\nSingle-page dashboard application\nwith TanStack Router & shadcn/ui"]
+
+    %% KIND: service_layer
+    backend["🐍 FastAPI Backend\n[Container: Python, FastAPI, SQLModel]\nREST API serving /api/v1 endpoints\nwith JWT auth and CORS"]
+
+    %% KIND: worker
+    prestart["🚀 Prestart Job\n[Container: Python, Alembic]\nRuns DB migrations and seeds\ninitial superuser on deploy"]
+
+    %% KIND: storage
+    pg["🐘 PostgreSQL\n[Container: PostgreSQL 18]\nPrimary relational data store\nfor users and items"]
+
+    %% KIND: boundary
+    adminer["🔧 Adminer\n[Container: PHP]\nLightweight database\nadministration UI"]
+  end
+
+  subgraph external["External Systems"]
+    smtp["📧 SMTP Server\n[External System]"]
+    sentry["📊 Sentry\n[External System]"]
+  end
+
+  user -- "HTTPS" --> traefik
+  admin_user -- "HTTPS" --> traefik
+
+  traefik -- "dashboard.{domain}\n[HTTP :80]" --> frontend
+  traefik -- "api.{domain}\n[HTTP :8000]" --> backend
+  traefik -- "adminer.{domain}\n[HTTP :8080]" --> adminer
+
+  frontend -- "REST API calls\n[JSON/HTTP]" --> backend
+
+  backend -- "SQL queries\n[psycopg / TCP :5432]" --> pg
+  backend -- "Sends emails\n[SMTP/TLS]" --> smtp
+  backend -- "Error reports\n[HTTPS]" --> sentry
+
+  prestart -- "Alembic migrations\n& initial seed\n[psycopg / TCP :5432]" --> pg
+
+  adminer -- "Database management\n[SQL / TCP :5432]" --> pg
+
+%% ============================================================
+%% STYLES – L2
+%% ============================================================
+  classDef person fill:#08427b,stroke:#052e56,color:#fff
+  classDef container fill:#1168bd,stroke:#0b4884,color:#fff
+  classDef storage fill:#2b78c4,stroke:#1a5a96,color:#fff
+  classDef external fill:#999999,stroke:#6b6b6b,color:#fff
+
+  class user,admin_user person
+  class traefik,frontend,backend,prestart,adminer container
+  class pg storage
+  class smtp,sentry external
+
+---
+
+%% ============================================================
+%% L3: Component – FastAPI Backend
+%% ============================================================
+%% SCOPE: urn:c4:container:backend
+
+graph TD
+
+  subgraph backend["FastAPI Backend"]
+
+    subgraph middleware["Middleware Layer"]
+      %% KIND: boundary
+      cors_mw["CORS Middleware\n[Component: Starlette]\nEnforces allowed origins,\ncredentials, methods, headers"]
+
+      %% KIND: boundary
+      auth_deps["Auth Dependencies\n[Component: FastAPI Depends]\nOAuth2 bearer token extraction,\nJWT decode, current-user resolution"]
+    end
+
+    subgraph routes["API Routes"]
+      %% KIND: router
+      login_routes["Login Routes\n[Component: APIRouter]\n/login/access-token\n/password-recovery\n/reset-password"]
+
+      %% KIND: router
+      user_routes["User Routes\n[Component: APIRouter]\n/users CRUD, /users/me,\n/users/signup, /users/{id}"]
+
+      %% KIND: router
+      item_routes["Item Routes\n[Component: APIRouter]\n/items CRUD with\nowner-based access control"]
+
+      %% KIND: router
+      util_routes["Utility Routes\n[Component: APIRouter]\n/utils/health-check,\n/utils/test-email"]
+    end
+
+    subgraph services["Service Layer"]
+      %% KIND: service_layer
+      crud_layer["CRUD Operations\n[Component: Python Module]\nUser & Item create/read/update/delete,\nauthenticate with timing-safe compare"]
+
+      %% KIND: integration
+      email_utils["Email Utilities\n[Component: Python Module]\nJinja2 template rendering,\nSMTP dispatch, token generation"]
+    end
+
+    subgraph core["Core Infrastructure"]
+      %% KIND: service_layer
+      security_core["Security Module\n[Component: PyJWT, pwdlib]\nJWT token creation, HS256 signing,\nArgon2/Bcrypt password hashing"]
+
+      %% KIND: service_layer
+      config_core["Configuration\n[Component: Pydantic Settings]\nEnvironment-based settings,\nCORS origins, DB URI, SMTP config"]
+
+      %% KIND: storage
+      db_engine["Database Engine\n[Component: SQLAlchemy Engine]\nConnection pooling and session\nmanagement for PostgreSQL"]
+
+      %% KIND: data_access
+      models_layer["SQLModel Models\n[Component: SQLModel]\nUser & Item table definitions,\nPydantic schemas for API I/O"]
+    end
+
+  end
+
+  %% --- External nodes referenced from L2 ---
+  pg["🐘 PostgreSQL\n[Container]"]
+  smtp["📧 SMTP Server\n[External System]"]
+  sentry["📊 Sentry\n[External System]"]
+
+  %% --- Request flow ---
+  cors_mw --> auth_deps
+  auth_deps --> login_routes
+  auth_deps --> user_routes
+  auth_deps --> item_routes
+  auth_deps --> util_routes
+
+  %% --- Routes to services ---
+  login_routes -- "authenticate,\nupdate_user" --> crud_layer
+  login_routes -- "create_access_token,\nverify_password" --> security_core
+  login_routes -- "generate & send\nreset email" --> email_utils
+
+  user_routes -- "create/read/update/\ndelete users" --> crud_layer
+  user_routes -- "hash & verify\npasswords" --> security_core
+  user_routes -- "send new account\nemail" --> email_utils
+
+  item_routes -- "create/read/update/\ndelete items" --> crud_layer
+
+  util_routes -- "send test email" --> email_utils
+
+  %% --- Services to core ---
+  crud_layer -- "query & persist\nentities" --> models_layer
+  crud_layer -- "hash & verify\npasswords" --> security_core
+  models_layer -- "execute SQL via\nSQLAlchemy sessions" --> db_engine
+  security_core -- "reads SECRET_KEY,\nalgorithm config" --> config_core
+  email_utils -- "reads SMTP config,\nFRONTEND_HOST" --> config_core
+
+  %% --- Core to external ---
+  db_engine -- "SQL / TCP :5432" --> pg
+  email_utils -- "SMTP/TLS" --> smtp
+  cors_mw -. "Sentry SDK init\n(app startup)" .-> sentry
+
+%% ============================================================
+%% STYLES – L3 Backend
+%% ============================================================
+  classDef component fill:#438dd5,stroke:#2e6ca0,color:#fff
+  classDef subgraphStyle fill:#e8f0fe,stroke:#1168bd,color:#1168bd
+  classDef storage fill:#2b78c4,stroke:#1a5a96,color:#fff
+  classDef external fill:#999999,stroke:#6b6b6b,color:#fff
+
+  class cors_mw,auth_deps,login_routes,user_routes,item_routes,util_routes component
+  class crud_layer,email_utils,security_core,config_core,db_engine,models_layer component
+  class pg storage
+  class smtp,sentry external
+
+---
+
+%% ============================================================
+%% L3: Component – React SPA (Frontend)
+%% ============================================================
+%% SCOPE: urn:c4:container:frontend
+
+graph TD
+
+  subgraph frontend["React SPA"]
+
+    subgraph routing_layer["Routing & State"]
+      %% KIND: router
+      tanstack_router["TanStack File Router\n[Component: @tanstack/react-router]\nFile-based routing with guards,\nredirects unauthenticated to /login"]
+
+      %% KIND: service_layer
+      query_client["Query Client\n[Component: @tanstack/react-query]\nServer state cache, mutations,\nauto error handling for 401/403"]
+
+      %% KIND: service_layer
+      auth_hook["useAuth Hook\n[Component: React Hook]\nLogin/logout/signup mutations,\ncurrent-user query, token management"]
+    end
+
+    subgraph data_layer["Data Layer"]
+      %% KIND: integration
+      api_client["API Client SDK\n[Component: @hey-api/openapi-ts]\nAuto-generated typed HTTP client\n(ItemsService, UsersService, LoginService)"]
+    end
+
+    subgraph feature_views["Feature Views"]
+      %% KIND: boundary
+      dashboard_view["Dashboard View\n[Component: React Page]\nWelcome page showing\ncurrent user greeting"]
+
+      %% KIND: boundary
+      admin_view["Admin Panel\n[Component: React Page]\nUser management: list, add,\nedit, delete users (superuser)"]
+
+      %% KIND: boundary
+      items_view["Items View\n[Component: React Page]\nItem CRUD: list, create,\nedit, delete with pagination"]
+
+      %% KIND: boundary
+      settings_view["User Settings\n[Component: React Page]\nProfile info, change password,\ndelete account"]
+
+      %% KIND: boundary
+      login_view["Auth Views\n[Component: React Pages]\nLogin, signup, password\nrecovery, password reset"]
+    end
+
+    subgraph ui_framework["UI Framework"]
+      %% KIND: boundary
+      sidebar_nav["Sidebar Navigation\n[Component: React Component]\nApp sidebar with route links,\nuser menu, collapsible layout"]
+
+      %% KIND: boundary
+      ui_primitives["UI Primitives\n[Component: shadcn/ui + Radix]\nButton, Dialog, DataTable, Form,\nInput, Select, Tabs, Tooltip, etc."]
+
+      %% KIND: service_layer
+      theme_mgr["Theme Provider\n[Component: next-themes]\nDark/light mode toggle,\npersisted in localStorage"]
+    end
+
+  end
+
+  %% --- External nodes referenced from L2 ---
+  backend["🐍 FastAPI Backend\n[Container]"]
+
+  %% --- Routing flows ---
+  tanstack_router -- "renders" --> dashboard_view
+  tanstack_router -- "renders" --> admin_view
+  tanstack_router -- "renders" --> items_view
+  tanstack_router -- "renders" --> settings_view
+  tanstack_router -- "renders" --> login_view
+
+  %% --- Auth flows ---
+  login_view -- "login/signup\nmutations" --> auth_hook
+  auth_hook -- "queries & mutations\nvia QueryClient" --> query_client
+
+  %% --- Data flows ---
+  admin_view -- "useQuery/useMutation" --> query_client
+  items_view -- "useQuery/useMutation" --> query_client
+  settings_view -- "useQuery/useMutation" --> query_client
+  dashboard_view -- "useQuery" --> query_client
+
+  query_client -- "delegates HTTP\ncalls to SDK" --> api_client
+
+  %% --- UI composition ---
+  dashboard_view -- "uses" --> sidebar_nav
+  admin_view -- "uses" --> ui_primitives
+  items_view -- "uses" --> ui_primitives
+  settings_view -- "uses" --> ui_primitives
+  login_view -- "uses" --> ui_primitives
+
+  %% --- External ---
+  api_client -- "REST API\n[JSON/HTTP]" --> backend
+
+%% ============================================================
+%% STYLES – L3 Frontend
+%% ============================================================
+  classDef component fill:#438dd5,stroke:#2e6ca0,color:#fff
+  classDef external fill:#1168bd,stroke:#0b4884,color:#fff
+
+  class tanstack_router,query_client,auth_hook,api_client component
+  class dashboard_view,admin_view,items_view,settings_view,login_view component
+  class sidebar_nav,ui_primitives,theme_mgr component
+  class backend external
+
+---
+
+%% ============================================================
+%% CONTAINMENT MAP
+%% ============================================================
+%%
+%% Every subgraph and node from every diagram above is listed
+%% here so the parser can build the full parent→child tree.
+%% Indentation shows nesting depth.
+%%
+%% ── L1 top-level groups ────────────────────────────────────
+%%
+%% users            CONTAINS [user, admin_user]
+%% system_boundary  CONTAINS [system]
+%% external         CONTAINS [smtp, sentry]
+%%
+%% ── L2 top-level groups ────────────────────────────────────
+%%
+%% users            CONTAINS [user, admin_user]
+%% system_boundary  CONTAINS [traefik, frontend, backend, prestart, pg, adminer]
+%% external         CONTAINS [smtp, sentry]
+%%
+%% ── L3 Backend (scope: backend) ────────────────────────────
+%%
+%% backend    CONTAINS [middleware, routes, services, core]
+%%   middleware  CONTAINS [cors_mw, auth_deps]
+%%   routes     CONTAINS [login_routes, user_routes, item_routes, util_routes]
+%%   services   CONTAINS [crud_layer, email_utils]
+%%   core       CONTAINS [security_core, config_core, db_engine, models_layer]
+%%
+%% ── L3 Frontend (scope: frontend) ──────────────────────────
+%%
+%% frontend   CONTAINS [routing_layer, data_layer, feature_views, ui_framework]
+%%   routing_layer   CONTAINS [tanstack_router, query_client, auth_hook]
+%%   data_layer      CONTAINS [api_client]
+%%   feature_views   CONTAINS [dashboard_view, admin_view, items_view, settings_view, login_view]
+%%   ui_framework    CONTAINS [sidebar_nav, ui_primitives, theme_mgr]
