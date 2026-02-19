@@ -1,0 +1,276 @@
+%% ==========================================================================
+%% C4 Architecture Model — Full Stack FastAPI Template
+%% ==========================================================================
+%% Generated from codebase analysis.
+%% Stable IDs are reused across all diagram levels.
+%% ==========================================================================
+
+
+%% ══════════════════════════════════════════════════════════════════════════
+%% L1 — System Context
+%% ══════════════════════════════════════════════════════════════════════════
+%% SCOPE: urn:c4:system:fullstack_fastapi
+
+---
+title: "L1: System Context — Full Stack FastAPI Template"
+---
+
+C4Context
+
+    %% ── Actors ──────────────────────────────────────────────────────────
+    Person(user, "User", "Registers, logs in, manages personal items")
+    Person(admin_user, "Admin", "Manages users, views all items, sends test emails")
+
+    %% ── System Boundary ─────────────────────────────────────────────────
+    System_Boundary(platform_boundary, "Full Stack FastAPI Platform") {
+        System(fullstack_system, "Full Stack FastAPI Application", "Web application for user and item management with JWT auth, built on FastAPI + React")
+    }
+
+    %% ── External Systems ────────────────────────────────────────────────
+    System_Ext(smtp, "SMTP Server", "Delivers transactional emails: password recovery, new account notifications")
+    System_Ext(sentry, "Sentry", "Error tracking and performance monitoring for production")
+
+    %% ── Relationships ───────────────────────────────────────────────────
+    Rel(user, fullstack_system, "Browses dashboard, manages items", "HTTPS")
+    Rel(admin_user, fullstack_system, "Manages users, sends test emails", "HTTPS")
+    Rel(fullstack_system, smtp, "Sends transactional emails", "SMTP/TLS")
+    Rel(fullstack_system, sentry, "Reports errors & traces", "HTTPS")
+
+
+%% ══════════════════════════════════════════════════════════════════════════
+%% L2 — Container Diagram
+%% ══════════════════════════════════════════════════════════════════════════
+%% SCOPE: urn:c4:system:fullstack_fastapi
+
+---
+title: "L2: Container Diagram — Full Stack FastAPI Platform"
+---
+
+C4Container
+
+    %% ── Actors ──────────────────────────────────────────────────────────
+    Person(user, "User", "Registers, logs in, manages personal items")
+    Person(admin_user, "Admin", "Manages users, views all items, sends test emails")
+
+    %% ── Platform Boundary ───────────────────────────────────────────────
+    Container_Boundary(platform_boundary, "Full Stack FastAPI Platform") {
+
+        Container(spa, "React SPA", "React 19, TypeScript, Vite, TanStack Router, Tailwind CSS, shadcn/ui", "Single-page dashboard served via Nginx; auto-generated API client from OpenAPI spec")
+
+        Container(fastapi_backend, "FastAPI Backend", "Python 3.10+, FastAPI, SQLModel, Pydantic, Uvicorn", "REST API serving /api/v1/*; JWT authentication, CRUD operations, email utilities")
+
+        Container(prestart, "Prestart Job", "Python, Bash", "Runs DB migrations (Alembic) and seeds the first superuser before backend starts")
+
+        ContainerDb(pg, "PostgreSQL", "PostgreSQL 18", "Stores users, items, and Alembic migration state")
+
+        Container(traefik, "Traefik", "Traefik 3.6", "Reverse proxy and load balancer; terminates TLS via Let's Encrypt, routes to backend and frontend")
+
+        Container(adminer, "Adminer", "Adminer (PHP)", "Lightweight database administration UI for PostgreSQL")
+    }
+
+    %% ── External Systems ────────────────────────────────────────────────
+    System_Ext(smtp, "SMTP Server", "Delivers transactional emails")
+    System_Ext(sentry, "Sentry", "Error tracking and performance monitoring")
+
+    %% ── Relationships ───────────────────────────────────────────────────
+    Rel(user, traefik, "Browses dashboard", "HTTPS")
+    Rel(admin_user, traefik, "Manages users & system", "HTTPS")
+
+    Rel(traefik, spa, "Proxies dashboard.*", "HTTP :80")
+    Rel(traefik, fastapi_backend, "Proxies api.*", "HTTP :8000")
+    Rel(traefik, adminer, "Proxies adminer.*", "HTTP :8080")
+
+    Rel(spa, fastapi_backend, "Calls REST API", "HTTPS /api/v1/*")
+
+    Rel(fastapi_backend, pg, "Reads/writes data", "PostgreSQL protocol (psycopg)")
+    Rel(fastapi_backend, smtp, "Sends emails", "SMTP/TLS")
+    Rel(fastapi_backend, sentry, "Reports errors", "HTTPS")
+
+    Rel(prestart, pg, "Runs Alembic migrations, seeds superuser", "PostgreSQL protocol")
+
+    Rel(adminer, pg, "Admin queries", "PostgreSQL protocol")
+
+
+%% ══════════════════════════════════════════════════════════════════════════
+%% L3 — Component Diagram: FastAPI Backend
+%% ══════════════════════════════════════════════════════════════════════════
+%% SCOPE: urn:c4:container:fastapi_backend
+
+---
+title: "L3: Component Diagram — FastAPI Backend"
+---
+
+C4Component
+
+    Container_Boundary(fastapi_backend, "FastAPI Backend") {
+
+        %% ── Middleware ──────────────────────────────────────────────────
+        %% KIND: boundary
+        Component(cors_mw, "CORS Middleware", "Starlette CORSMiddleware", "Enforces allowed origins from BACKEND_CORS_ORIGINS and FRONTEND_HOST settings")
+
+        %% ── Auth & Dependency Injection ─────────────────────────────────
+        %% KIND: service_layer
+        Component(auth_deps, "Auth Dependencies", "FastAPI Depends, PyJWT, OAuth2PasswordBearer", "Provides SessionDep, TokenDep, CurrentUser, and superuser guard via dependency injection")
+
+        %% ── Route Groups ────────────────────────────────────────────────
+        %% KIND: router
+        Component(login_routes, "Login Routes", "FastAPI APIRouter", "POST /login/access-token, POST /login/test-token, POST /password-recovery, POST /reset-password")
+
+        %% KIND: router
+        Component(user_routes, "User Routes", "FastAPI APIRouter", "CRUD for /users; signup, profile update, password change, admin user management")
+
+        %% KIND: router
+        Component(item_routes, "Item Routes", "FastAPI APIRouter", "CRUD for /items; owner-scoped access, superuser can see all")
+
+        %% KIND: router
+        Component(utils_routes, "Utils Routes", "FastAPI APIRouter", "GET /utils/health-check, POST /utils/test-email (superuser only)")
+
+        %% ── Business Logic ──────────────────────────────────────────────
+        %% KIND: service_layer
+        Component(crud_layer, "CRUD Layer", "Python module (crud.py)", "create_user, update_user, get_user_by_email, authenticate, create_item")
+
+        %% KIND: service_layer
+        Component(email_utils, "Email Utilities", "Jinja2, emails library", "render_email_template, send_email, generate password-reset / new-account emails")
+
+        %% ── Security ────────────────────────────────────────────────────
+        %% KIND: service_layer
+        Component(security_mod, "Security Module", "PyJWT, pwdlib (Argon2 + Bcrypt)", "create_access_token, verify_password, get_password_hash")
+
+        %% ── Data Access ─────────────────────────────────────────────────
+        %% KIND: data_access
+        Component(models_layer, "Models", "SQLModel", "User, Item table models; Pydantic schemas for request/response validation")
+
+        %% KIND: data_access
+        Component(db_engine, "DB Engine", "SQLModel create_engine, Alembic", "SQLAlchemy engine creation; init_db seeds first superuser")
+
+        %% ── Configuration ───────────────────────────────────────────────
+        %% KIND: service_layer
+        Component(core_config, "Core Config", "Pydantic Settings", "Loads env vars: DB connection, SMTP, secrets, CORS origins, Sentry DSN")
+    }
+
+    %% ── External elements (same stable IDs) ─────────────────────────────
+    ContainerDb(pg, "PostgreSQL", "PostgreSQL 18", "Stores users and items")
+    System_Ext(smtp, "SMTP Server", "Delivers transactional emails")
+    System_Ext(sentry, "Sentry", "Error tracking")
+    Container(spa, "React SPA", "React 19", "Frontend dashboard")
+
+    %% ── Relationships ───────────────────────────────────────────────────
+    Rel(spa, cors_mw, "API requests pass through CORS", "HTTPS")
+    Rel(cors_mw, login_routes, "Forwards auth requests")
+    Rel(cors_mw, user_routes, "Forwards user requests")
+    Rel(cors_mw, item_routes, "Forwards item requests")
+    Rel(cors_mw, utils_routes, "Forwards utility requests")
+
+    Rel(login_routes, auth_deps, "Validates tokens")
+    Rel(login_routes, crud_layer, "Authenticates users")
+    Rel(login_routes, security_mod, "Creates JWT tokens")
+    Rel(login_routes, email_utils, "Sends password recovery emails")
+
+    Rel(user_routes, auth_deps, "Enforces authentication & authorization")
+    Rel(user_routes, crud_layer, "User CRUD operations")
+    Rel(user_routes, email_utils, "Sends new account emails")
+
+    Rel(item_routes, auth_deps, "Enforces authentication")
+    Rel(item_routes, models_layer, "Validates & persists items")
+
+    Rel(utils_routes, auth_deps, "Superuser guard")
+    Rel(utils_routes, email_utils, "Sends test emails")
+
+    Rel(crud_layer, models_layer, "Queries & mutates models")
+    Rel(crud_layer, security_mod, "Hashes & verifies passwords")
+    Rel(crud_layer, db_engine, "Uses SQLModel Session")
+
+    Rel(email_utils, core_config, "Reads SMTP settings")
+    Rel(email_utils, smtp, "Sends emails via SMTP", "SMTP/TLS")
+
+    Rel(security_mod, core_config, "Reads SECRET_KEY, algorithm")
+    Rel(db_engine, core_config, "Reads SQLALCHEMY_DATABASE_URI")
+    Rel(db_engine, pg, "Connects via psycopg", "PostgreSQL protocol")
+
+    Rel(core_config, sentry, "Provides SENTRY_DSN")
+
+
+%% ══════════════════════════════════════════════════════════════════════════
+%% L3 — Component Diagram: React SPA
+%% ══════════════════════════════════════════════════════════════════════════
+%% SCOPE: urn:c4:container:spa
+
+---
+title: "L3: Component Diagram — React SPA"
+---
+
+C4Component
+
+    Container_Boundary(spa, "React SPA") {
+
+        %% ── Routing ─────────────────────────────────────────────────────
+        %% KIND: router
+        Component(tanstack_router, "TanStack Router", "TanStack Router, File-based routing", "Defines routes: /login, /signup, /recover-password, /reset-password, /_layout (admin, items, settings)")
+
+        %% ── State & Data ────────────────────────────────────────────────
+        %% KIND: service_layer
+        Component(auth_hooks, "Auth Hooks", "React hooks, TanStack Query", "useAuth: login/signup/logout mutations, current user query, token management in localStorage")
+
+        %% KIND: integration
+        Component(api_client, "API Client", "Auto-generated from OpenAPI (@hey-api/openapi-ts)", "ItemsService, LoginService, UsersService, UtilsService — typed HTTP calls to /api/v1/*")
+
+        %% ── Feature Components ──────────────────────────────────────────
+        %% KIND: boundary
+        Component(admin_components, "Admin Components", "React, TanStack Table", "AddUser, EditUser, DeleteUser, UserActionsMenu, columns — admin user management UI")
+
+        %% KIND: boundary
+        Component(items_components, "Items Components", "React, TanStack Table", "AddItem, EditItem, DeleteItem, ItemActionsMenu, columns — item CRUD UI")
+
+        %% KIND: boundary
+        Component(settings_components, "UserSettings Components", "React, react-hook-form, Zod", "UserInformation, ChangePassword, DeleteAccount, DeleteConfirmation")
+
+        %% ── Shared UI ───────────────────────────────────────────────────
+        %% KIND: boundary
+        Component(ui_lib, "UI Component Library", "shadcn/ui, Radix UI, Tailwind CSS", "Button, Dialog, Form, Table, Sidebar, Tabs, Tooltip, and 20+ reusable primitives")
+
+        %% KIND: service_layer
+        Component(theme_provider, "Theme Provider", "next-themes", "Dark/light mode toggle and system preference detection")
+    }
+
+    %% ── External elements ───────────────────────────────────────────────
+    Container(fastapi_backend, "FastAPI Backend", "Python, FastAPI", "REST API")
+
+    %% ── Relationships ───────────────────────────────────────────────────
+    Rel(tanstack_router, auth_hooks, "Guards routes, checks isLoggedIn()")
+    Rel(tanstack_router, admin_components, "Renders on /_layout/admin")
+    Rel(tanstack_router, items_components, "Renders on /_layout/items")
+    Rel(tanstack_router, settings_components, "Renders on /_layout/settings")
+
+    Rel(auth_hooks, api_client, "Calls LoginService, UsersService")
+    Rel(admin_components, api_client, "Calls UsersService for CRUD")
+    Rel(items_components, api_client, "Calls ItemsService for CRUD")
+    Rel(settings_components, api_client, "Calls UsersService for profile/password updates")
+
+    Rel(admin_components, ui_lib, "Uses shared UI primitives")
+    Rel(items_components, ui_lib, "Uses shared UI primitives")
+    Rel(settings_components, ui_lib, "Uses shared UI primitives")
+
+    Rel(tanstack_router, ui_lib, "Layout uses Sidebar, SidebarProvider")
+    Rel(tanstack_router, theme_provider, "Wraps app in ThemeProvider")
+
+    Rel(api_client, fastapi_backend, "HTTP calls to /api/v1/*", "HTTPS")
+
+
+%% ══════════════════════════════════════════════════════════════════════════
+%% CONTAINMENT MAP
+%% ══════════════════════════════════════════════════════════════════════════
+%%
+%% ── L1 top-level groups ─────────────────────────────────────────────────
+%% users              CONTAINS [user, admin_user]
+%% platform_boundary  CONTAINS [fullstack_system]
+%% external           CONTAINS [smtp, sentry]
+%%
+%% ── L2 platform_boundary internals ──────────────────────────────────────
+%% platform_boundary  CONTAINS [spa, fastapi_backend, prestart, pg, traefik, adminer]
+%%
+%% ── L3 fastapi_backend components ───────────────────────────────────────
+%% fastapi_backend    CONTAINS [cors_mw, auth_deps, login_routes, user_routes, item_routes, utils_routes, crud_layer, email_utils, security_mod, models_layer, db_engine, core_config]
+%%
+%% ── L3 spa components ───────────────────────────────────────────────────
+%% spa                CONTAINS [tanstack_router, auth_hooks, api_client, admin_components, items_components, settings_components, ui_lib, theme_provider]
+%%
