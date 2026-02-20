@@ -1,0 +1,280 @@
+%% ============================================================================
+%% C4 ARCHITECTURE MODEL — Full Stack FastAPI Template
+%% ============================================================================
+%%
+%% Stable IDs used across all levels:
+%%   users / user / admin_user
+%%   fullstack_system
+%%   spa / fastapi_backend / pg / traefik / adminer / prestart
+%%   smtp_server / sentry
+%%   (L3 IDs defined per-container below)
+%%
+%% ============================================================================
+%% L1: SYSTEM CONTEXT
+%% ============================================================================
+%% SCOPE: urn:c4:system:fullstack_system
+
+graph TB
+  subgraph users["Users"]
+    user["User\n[Person]\nRegular application user\nwho manages items"]
+    admin_user["Admin\n[Person]\nSuperuser who manages\nusers and system settings"]
+  end
+
+  subgraph fullstack_boundary["Full Stack FastAPI Platform"]
+    fullstack_system["Full Stack FastAPI System\n[Software System]\nA full-stack web application for\nuser and item management"]
+  end
+
+  subgraph external["External Systems"]
+    smtp_server["SMTP Server\n[External System]\nSends transactional emails\n(password recovery, notifications)"]
+    sentry["Sentry\n[External System]\nError tracking and\nperformance monitoring"]
+  end
+
+  user -->|"Uses web dashboard\n[HTTPS]"| fullstack_system
+  admin_user -->|"Administers users & system\n[HTTPS]"| fullstack_system
+  fullstack_system -->|"Sends emails via\n[SMTP/TLS]"| smtp_server
+  fullstack_system -->|"Reports errors to\n[HTTPS]"| sentry
+
+
+%% ============================================================================
+%% L2: CONTAINER DIAGRAM
+%% ============================================================================
+%% SCOPE: urn:c4:system:fullstack_system
+
+graph TB
+  subgraph users["Users"]
+    user["User\n[Person]"]
+    admin_user["Admin\n[Person]"]
+  end
+
+  subgraph fullstack_boundary["Full Stack FastAPI Platform"]
+    traefik["Traefik\n[Container: Traefik v3]\nReverse proxy & load balancer\nTLS termination, routing"]
+
+    spa["React SPA\n[Container: React / Vite / Nginx]\nSingle-page application serving\nthe dashboard UI"]
+
+    fastapi_backend["FastAPI Backend\n[Container: Python / FastAPI]\nREST API handling business logic,\nauthentication, and data access"]
+
+    prestart["Prestart Job\n[Container: Python]\nDatabase migration runner\nand initial data seeder"]
+
+    pg["PostgreSQL\n[Container: PostgreSQL 18]\nPrimary relational data store\nfor users and items"]
+
+    adminer["Adminer\n[Container: Adminer]\nWeb-based database\nadministration tool"]
+  end
+
+  subgraph external["External Systems"]
+    smtp_server["SMTP Server\n[External System]"]
+    sentry["Sentry\n[External System]"]
+  end
+
+  user -->|"Browses dashboard\n[HTTPS]"| traefik
+  admin_user -->|"Administers system\n[HTTPS]"| traefik
+
+  traefik -->|"Routes dashboard.*\n[HTTP]"| spa
+  traefik -->|"Routes api.*\n[HTTP]"| fastapi_backend
+  traefik -->|"Routes adminer.*\n[HTTP]"| adminer
+
+  spa -->|"API calls\n[HTTP/JSON]"| fastapi_backend
+
+  fastapi_backend -->|"Reads/writes data\n[SQL via psycopg]"| pg
+  fastapi_backend -->|"Sends emails\n[SMTP/TLS]"| smtp_server
+  fastapi_backend -->|"Reports errors\n[HTTPS]"| sentry
+
+  prestart -->|"Runs migrations & seeds\n[SQL via Alembic]"| pg
+
+  adminer -->|"Manages database\n[SQL]"| pg
+
+
+%% ============================================================================
+%% L3: COMPONENT — FastAPI Backend
+%% ============================================================================
+%% SCOPE: urn:c4:container:fastapi_backend
+
+graph TB
+  subgraph fastapi_backend["FastAPI Backend"]
+
+    %% KIND: router
+    subgraph api_routes["API Routes"]
+      login_routes["Login Routes\n[Component: APIRouter]\n/login/access-token\n/password-recovery\n/reset-password"]
+      user_routes["User Routes\n[Component: APIRouter]\n/users CRUD\n/users/me\n/users/signup"]
+      item_routes["Item Routes\n[Component: APIRouter]\n/items CRUD\nOwner-scoped access"]
+      util_routes["Utils Routes\n[Component: APIRouter]\n/health-check\n/test-email"]
+      private_routes["Private Routes\n[Component: APIRouter]\n/private/users\nLocal env only"]
+    end
+
+    %% KIND: service_layer
+    subgraph middleware["Middleware & Dependencies"]
+      cors_mw["CORS Middleware\n[Component: Starlette]\nCross-origin request handling"]
+      oauth2_dep["OAuth2 Dependency\n[Component: FastAPI Dep]\nBearer token extraction"]
+      auth_dep["Auth Dependency\n[Component: FastAPI Dep]\nJWT validation &\ncurrent user resolution"]
+      superuser_dep["Superuser Guard\n[Component: FastAPI Dep]\nAdmin privilege enforcement"]
+      session_dep["Session Dependency\n[Component: FastAPI Dep]\nDB session lifecycle"]
+    end
+
+    %% KIND: service_layer
+    subgraph services["Services"]
+      security_svc["Security Service\n[Component: Python Module]\nJWT creation, password\nhashing (Argon2/bcrypt)"]
+      crud_svc["CRUD Service\n[Component: Python Module]\nUser & Item database\noperations"]
+      email_svc["Email Service\n[Component: Python Module]\nEmail rendering (Jinja2)\nand SMTP dispatch"]
+      config_svc["Config / Settings\n[Component: Pydantic Settings]\nEnvironment-based\nconfiguration management"]
+    end
+
+    %% KIND: data_access
+    subgraph data_layer["Data Layer"]
+      models["SQLModel Models\n[Component: SQLModel]\nUser, Item table definitions\nand Pydantic schemas"]
+      db_engine["DB Engine\n[Component: SQLAlchemy]\nConnection pool &\nsession factory"]
+      alembic["Alembic Migrations\n[Component: Alembic]\nSchema versioning &\nmigration runner"]
+    end
+  end
+
+  %% External nodes (same stable IDs as L2)
+  spa["React SPA\n[Container]"]
+  pg["PostgreSQL\n[Container]"]
+  smtp_server["SMTP Server\n[External]"]
+  sentry["Sentry\n[External]"]
+
+  spa -->|"REST API calls\n[HTTP/JSON]"| login_routes
+  spa -->|"REST API calls\n[HTTP/JSON]"| user_routes
+  spa -->|"REST API calls\n[HTTP/JSON]"| item_routes
+
+  login_routes --> auth_dep
+  login_routes --> security_svc
+  login_routes --> crud_svc
+  login_routes --> email_svc
+
+  user_routes --> auth_dep
+  user_routes --> superuser_dep
+  user_routes --> crud_svc
+  user_routes --> email_svc
+
+  item_routes --> auth_dep
+  item_routes --> session_dep
+
+  util_routes --> superuser_dep
+  util_routes --> email_svc
+
+  private_routes --> session_dep
+
+  auth_dep --> oauth2_dep
+  auth_dep --> security_svc
+  auth_dep --> session_dep
+
+  superuser_dep --> auth_dep
+
+  crud_svc --> models
+  crud_svc --> security_svc
+
+  session_dep --> db_engine
+
+  email_svc --> config_svc
+  security_svc --> config_svc
+
+  db_engine --> pg
+  alembic --> pg
+  email_svc -->|"SMTP/TLS"| smtp_server
+  config_svc -.->|"DSN"| sentry
+
+
+%% ============================================================================
+%% L3: COMPONENT — React SPA
+%% ============================================================================
+%% SCOPE: urn:c4:container:spa
+
+graph TB
+  subgraph spa["React SPA"]
+
+    %% KIND: router
+    subgraph routing["Routing"]
+      root_route["Root Route\n[Component: TanStack Router]\nApp shell, error boundary,\ndevtools"]
+      layout_route["Layout Route\n[Component: TanStack Router]\nSidebar + auth guard\nfor protected pages"]
+      auth_pages["Auth Pages\n[Component: React]\nLogin, Signup,\nPassword Recovery/Reset"]
+    end
+
+    %% KIND: service_layer
+    subgraph hooks_layer["Hooks & State"]
+      use_auth["useAuth Hook\n[Component: React Hook]\nLogin, logout, signup\nmutations & user query"]
+      use_toast["useCustomToast Hook\n[Component: React Hook]\nToast notification helpers"]
+      query_client["QueryClient\n[Component: TanStack Query]\nServer state cache,\nmutation/query management"]
+      theme_provider["ThemeProvider\n[Component: next-themes]\nDark/light mode\nstate management"]
+    end
+
+    %% KIND: boundary
+    subgraph features["Feature Components"]
+      admin_components["Admin Panel\n[Component: React]\nUser table, add/edit/delete\nuser management"]
+      item_components["Items Panel\n[Component: React]\nItem table, add/edit/delete\nitem management"]
+      settings_components["Settings Panel\n[Component: React]\nUser info, password change,\naccount deletion"]
+      sidebar_components["Sidebar / Navigation\n[Component: React]\nApp navigation,\nuser menu"]
+    end
+
+    %% KIND: integration
+    subgraph api_client["API Client"]
+      openapi_client["OpenAPI Client\n[Component: Auto-generated]\nTyped SDK for backend\n(Items/Login/Users/Utils)"]
+      api_config["API Config\n[Component: OpenAPI]\nBase URL, token injection"]
+    end
+
+    %% KIND: boundary
+    subgraph ui_kit["UI Kit"]
+      shadcn_ui["shadcn/ui Components\n[Component: Radix + Tailwind]\nButton, Dialog, Table,\nForm, Sidebar, etc."]
+    end
+  end
+
+  %% External nodes
+  fastapi_backend["FastAPI Backend\n[Container]"]
+  user["User\n[Person]"]
+
+  user -->|"Interacts via browser"| root_route
+
+  root_route --> layout_route
+  root_route --> auth_pages
+
+  layout_route --> admin_components
+  layout_route --> item_components
+  layout_route --> settings_components
+  layout_route --> sidebar_components
+
+  auth_pages --> use_auth
+  admin_components --> query_client
+  item_components --> query_client
+  settings_components --> query_client
+  settings_components --> use_auth
+
+  use_auth --> openapi_client
+  query_client --> openapi_client
+
+  openapi_client --> api_config
+  api_config -->|"HTTP/JSON"| fastapi_backend
+
+  admin_components --> shadcn_ui
+  item_components --> shadcn_ui
+  settings_components --> shadcn_ui
+  sidebar_components --> shadcn_ui
+  auth_pages --> shadcn_ui
+
+
+%% ============================================================================
+%% CONTAINMENT MAP
+%% ============================================================================
+%%
+%% ── L1 top-level groups ─────────────────────────────────────────
+%% users              CONTAINS [user, admin_user]
+%% fullstack_boundary CONTAINS [fullstack_system]
+%% external           CONTAINS [smtp_server, sentry]
+%%
+%% ── L2 container-level groups ───────────────────────────────────
+%% fullstack_boundary CONTAINS [traefik, spa, fastapi_backend, prestart, pg, adminer]
+%% external           CONTAINS [smtp_server, sentry]
+%% users              CONTAINS [user, admin_user]
+%%
+%% ── L3 FastAPI Backend internals ────────────────────────────────
+%% fastapi_backend    CONTAINS [api_routes, middleware, services, data_layer]
+%%   api_routes       CONTAINS [login_routes, user_routes, item_routes, util_routes, private_routes]
+%%   middleware       CONTAINS [cors_mw, oauth2_dep, auth_dep, superuser_dep, session_dep]
+%%   services         CONTAINS [security_svc, crud_svc, email_svc, config_svc]
+%%   data_layer       CONTAINS [models, db_engine, alembic]
+%%
+%% ── L3 React SPA internals ─────────────────────────────────────
+%% spa                CONTAINS [routing, hooks_layer, features, api_client, ui_kit]
+%%   routing          CONTAINS [root_route, layout_route, auth_pages]
+%%   hooks_layer      CONTAINS [use_auth, use_toast, query_client, theme_provider]
+%%   features         CONTAINS [admin_components, item_components, settings_components, sidebar_components]
+%%   api_client       CONTAINS [openapi_client, api_config]
+%%   ui_kit           CONTAINS [shadcn_ui]
+%%
