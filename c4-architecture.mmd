@@ -1,0 +1,233 @@
+%% ═══════════════════════════════════════════════════════════════════════
+%% C4 ARCHITECTURE MODEL — Full Stack FastAPI Project
+%% ═══════════════════════════════════════════════════════════════════════
+%%
+%% Stable IDs used across ALL levels:
+%%   Actors     : user, admin
+%%   System     : system_boundary (L1 boundary & L2 boundary)
+%%   Containers : react_spa, fastapi_backend, pg, traefik, adminer
+%%   Externals  : smtp, sentry
+%%   Backend L3 : cors_mw, login_routes, users_routes, items_routes,
+%%                utils_routes, auth_dep, crud_layer, models_layer,
+%%                security_mod, config_mod, email_util, db_engine
+%%   SPA L3     : router, query_client, api_client, auth_pages,
+%%                dashboard_pages, hooks_layer, ui_lib, theme_provider
+%%
+%% ═══════════════════════════════════════════════════════════════════════
+
+
+%% ═══════════════════════════════════════════════════════════════════════
+%% L1: SYSTEM CONTEXT
+%% ═══════════════════════════════════════════════════════════════════════
+%% SCOPE: urn:c4:system:fastapi_project
+
+C4Context
+    title L1: System Context — Full Stack FastAPI Project
+
+    Person(user, "User", "Regular user who creates and manages items via the dashboard")
+    Person(admin, "Admin", "Superuser who manages users, items, and system configuration")
+
+    Enterprise_Boundary(system_boundary, "Full Stack FastAPI Project") {
+        System(fastapi_project, "Full Stack FastAPI Project", "Full-stack web application providing a dashboard for item management with JWT authentication, user admin, and email-based password recovery")
+    }
+
+    System_Ext(smtp, "SMTP Server", "External email relay for transactional emails (password recovery, welcome emails)")
+    System_Ext(sentry, "Sentry", "Error tracking and performance monitoring service")
+
+    Rel(user, fastapi_project, "Browses dashboard, manages own items", "HTTPS")
+    Rel(admin, fastapi_project, "Manages users and all items", "HTTPS")
+    Rel(fastapi_project, smtp, "Sends transactional emails", "SMTP/TLS")
+    Rel(fastapi_project, sentry, "Reports errors and traces", "HTTPS")
+
+
+%% ═══════════════════════════════════════════════════════════════════════
+%% L2: CONTAINER
+%% ═══════════════════════════════════════════════════════════════════════
+%% SCOPE: urn:c4:system:fastapi_project
+
+C4Container
+    title L2: Container — Full Stack FastAPI Project
+
+    Person(user, "User", "Regular user")
+    Person(admin, "Admin", "Superuser")
+
+    System_Boundary(system_boundary, "Full Stack FastAPI Project") {
+        Container(traefik, "Traefik", "Traefik v3", "Reverse proxy / load balancer with TLS termination and routing rules")
+        Container(react_spa, "React SPA", "React 19, TypeScript, Vite, TanStack Router/Query, shadcn/ui", "Single-page application serving the dashboard UI with dark-mode support")
+        Container(fastapi_backend, "FastAPI Backend", "Python 3, FastAPI, SQLModel, Pydantic", "REST API handling authentication, authorization, CRUD operations, and email dispatch")
+        ContainerDb(pg, "PostgreSQL", "PostgreSQL 18", "Primary relational store for users, items, and migration state")
+        Container(adminer, "Adminer", "PHP", "Lightweight database administration web UI")
+    }
+
+    System_Ext(smtp, "SMTP Server", "Email delivery")
+    System_Ext(sentry, "Sentry", "Error tracking")
+
+    Rel(user, traefik, "Browses to", "HTTPS")
+    Rel(admin, traefik, "Browses to", "HTTPS")
+    Rel(traefik, react_spa, "Serves frontend assets", "HTTP :80")
+    Rel(traefik, fastapi_backend, "Proxies /api/* requests", "HTTP :8000")
+    Rel(traefik, adminer, "Proxies /adminer requests", "HTTP :8080")
+    Rel(react_spa, fastapi_backend, "Calls REST API", "JSON / HTTPS")
+    Rel(fastapi_backend, pg, "Reads and writes data", "psycopg via TCP :5432")
+    Rel(adminer, pg, "Administers database", "TCP :5432")
+    Rel(fastapi_backend, smtp, "Sends emails", "SMTP / TLS :587")
+    Rel(fastapi_backend, sentry, "Reports errors", "HTTPS")
+
+
+%% ═══════════════════════════════════════════════════════════════════════
+%% L3: FASTAPI BACKEND — Component Diagram
+%% ═══════════════════════════════════════════════════════════════════════
+%% SCOPE: urn:c4:container:fastapi_backend
+
+C4Component
+    title L3: FastAPI Backend
+
+    Container_Boundary(fastapi_backend, "FastAPI Backend") {
+
+        %% KIND: router
+        Component(cors_mw, "CORS Middleware", "Starlette CORSMiddleware", "Filters cross-origin requests based on allowed origins from config")
+
+        %% KIND: router
+        Component(login_routes, "Login Routes", "FastAPI APIRouter /login, /password-recovery, /reset-password", "OAuth2 token login, password recovery email dispatch, password reset")
+
+        %% KIND: router
+        Component(users_routes, "Users Routes", "FastAPI APIRouter /users", "User CRUD for admins, self-service profile/password, public signup")
+
+        %% KIND: router
+        Component(items_routes, "Items Routes", "FastAPI APIRouter /items", "Item CRUD with ownership-based access control; superusers see all")
+
+        %% KIND: router
+        Component(utils_routes, "Utils Routes", "FastAPI APIRouter /utils", "Health-check probe and test-email endpoint for admins")
+
+        %% KIND: service_layer
+        Component(auth_dep, "Auth Dependencies", "FastAPI Depends, OAuth2PasswordBearer", "JWT token validation, current-user resolution, superuser gate")
+
+        %% KIND: data_access
+        Component(crud_layer, "CRUD Layer", "Python module app.crud", "Encapsulates create/read/update/authenticate operations on User and Item")
+
+        %% KIND: storage
+        Component(models_layer, "ORM Models", "SQLModel / Pydantic", "User, Item table models plus request/response schemas (UserCreate, ItemPublic, Token, etc.)")
+
+        %% KIND: service_layer
+        Component(security_mod, "Security Module", "PyJWT, pwdlib (Argon2 + Bcrypt)", "JWT creation/verification, password hashing and verification with timing-safe comparison")
+
+        %% KIND: service_layer
+        Component(config_mod, "Configuration", "pydantic-settings", "Loads env vars into typed Settings: DB DSN, CORS origins, SMTP, secrets, feature flags")
+
+        %% KIND: integration
+        Component(email_util, "Email Service", "python-emails, Jinja2", "Renders HTML email templates and delivers via SMTP (welcome, password-recovery, test)")
+
+        %% KIND: data_access
+        Component(db_engine, "Database Engine", "SQLAlchemy create_engine, Session", "Manages the connection pool and yields per-request database sessions")
+    }
+
+    Container(react_spa, "React SPA", "React", "Frontend application")
+    ContainerDb(pg, "PostgreSQL", "PostgreSQL 18", "Application database")
+    System_Ext(smtp, "SMTP Server", "Email delivery")
+
+    Rel(react_spa, cors_mw, "All API requests pass through")
+    Rel(cors_mw, login_routes, "Routes /login /password-recovery /reset-password")
+    Rel(cors_mw, users_routes, "Routes /users")
+    Rel(cors_mw, items_routes, "Routes /items")
+    Rel(cors_mw, utils_routes, "Routes /utils")
+
+    Rel(login_routes, auth_dep, "Uses for token test endpoint")
+    Rel(login_routes, crud_layer, "Authenticates credentials via")
+    Rel(login_routes, security_mod, "Creates access tokens via")
+    Rel(login_routes, email_util, "Sends recovery emails via")
+
+    Rel(users_routes, auth_dep, "Enforces authentication and superuser checks")
+    Rel(users_routes, crud_layer, "Creates, reads, updates, deletes users via")
+    Rel(users_routes, security_mod, "Hashes/verifies passwords via")
+    Rel(users_routes, email_util, "Sends welcome emails via")
+
+    Rel(items_routes, auth_dep, "Enforces ownership and superuser access")
+    Rel(items_routes, models_layer, "Queries Item model directly via session")
+
+    Rel(utils_routes, auth_dep, "Superuser gate for test-email")
+    Rel(utils_routes, email_util, "Sends test emails via")
+
+    Rel(auth_dep, security_mod, "Decodes JWT tokens via")
+    Rel(auth_dep, db_engine, "Obtains DB session via get_db()")
+    Rel(auth_dep, models_layer, "Resolves User from token payload")
+
+    Rel(crud_layer, models_layer, "Operates on User and Item models")
+    Rel(crud_layer, security_mod, "Hashes passwords on create/update")
+    Rel(crud_layer, db_engine, "Executes queries via Session")
+
+    Rel(db_engine, pg, "Connects via psycopg", "TCP :5432")
+    Rel(db_engine, config_mod, "Reads SQLALCHEMY_DATABASE_URI")
+    Rel(models_layer, db_engine, "Tables registered with engine metadata")
+
+    Rel(security_mod, config_mod, "Reads SECRET_KEY for JWT signing")
+    Rel(email_util, config_mod, "Reads SMTP_HOST, SMTP_PORT, etc.")
+    Rel(email_util, smtp, "Delivers email", "SMTP / TLS")
+
+
+%% ═══════════════════════════════════════════════════════════════════════
+%% L3: REACT SPA — Component Diagram
+%% ═══════════════════════════════════════════════════════════════════════
+%% SCOPE: urn:c4:container:react_spa
+
+C4Component
+    title L3: React SPA
+
+    Container_Boundary(react_spa, "React SPA") {
+
+        %% KIND: router
+        Component(router, "TanStack Router", "@tanstack/react-router", "File-based routing with beforeLoad auth guards; renders root, layout, and page routes")
+
+        %% KIND: service_layer
+        Component(query_client, "Query Client", "@tanstack/react-query", "Server-state cache, automatic refetching, mutation lifecycle; global 401/403 error handler redirects to login")
+
+        %% KIND: integration
+        Component(api_client, "API Client", "@hey-api/openapi-ts auto-generated SDK", "Typed HTTP client with ItemsService, LoginService, UsersService, UtilsService classes")
+
+        %% KIND: boundary
+        Component(auth_pages, "Auth Pages", "React components", "Login, Signup, Recover Password, Reset Password pages with form validation (zod + react-hook-form)")
+
+        %% KIND: boundary
+        Component(dashboard_pages, "Dashboard Pages", "React components", "Dashboard home, Items CRUD table, Admin user management, User Settings (profile, password, delete account)")
+
+        %% KIND: service_layer
+        Component(hooks_layer, "Custom Hooks", "React hooks", "useAuth (login/logout/signup mutations + current user query), useCustomToast, useCopyToClipboard, useMobile")
+
+        %% KIND: boundary
+        Component(ui_lib, "UI Component Library", "shadcn/ui + Tailwind CSS", "Reusable primitives: Button, Dialog, DataTable, Form, Input, Select, Sidebar, Tabs, etc.")
+
+        %% KIND: service_layer
+        Component(theme_provider, "Theme Provider", "React Context", "Dark/light/system theme management persisted to localStorage")
+    }
+
+    Container(fastapi_backend, "FastAPI Backend", "Python, FastAPI", "REST API")
+
+    Rel(router, auth_pages, "Renders unauthenticated routes")
+    Rel(router, dashboard_pages, "Renders authenticated layout routes")
+    Rel(auth_pages, hooks_layer, "Calls useAuth for login/signup mutations")
+    Rel(auth_pages, ui_lib, "Composes form and layout primitives")
+    Rel(dashboard_pages, hooks_layer, "Calls useAuth for current user, useCopyToClipboard, etc.")
+    Rel(dashboard_pages, query_client, "Triggers queries and mutations for items/users")
+    Rel(dashboard_pages, ui_lib, "Composes DataTable, Dialog, Sidebar, etc.")
+    Rel(hooks_layer, query_client, "Wraps useQuery / useMutation")
+    Rel(query_client, api_client, "Delegates HTTP execution to generated SDK")
+    Rel(api_client, fastapi_backend, "REST calls", "JSON / HTTPS")
+    Rel(ui_lib, theme_provider, "Reads current theme for styling")
+
+
+%% ═══════════════════════════════════════════════════════════════════════
+%% CONTAINMENT MAP
+%% ═══════════════════════════════════════════════════════════════════════
+%%
+%% Every subgraph/boundary from every diagram is listed here.
+%% Nesting is expressed by indentation.
+%%
+%% ── L1 top-level groups ─────────────────────────────────────────────
+%% users            CONTAINS [user, admin]
+%% system_boundary  CONTAINS [react_spa, fastapi_backend, pg, traefik, adminer]
+%% external         CONTAINS [smtp, sentry]
+%%
+%% ── L2 → L3 internal containment ────────────────────────────────────
+%% fastapi_backend  CONTAINS [cors_mw, login_routes, users_routes, items_routes, utils_routes, auth_dep, crud_layer, models_layer, security_mod, config_mod, email_util, db_engine]
+%% react_spa        CONTAINS [router, query_client, api_client, auth_pages, dashboard_pages, hooks_layer, ui_lib, theme_provider]
+%%
+%% ═══════════════════════════════════════════════════════════════════════
