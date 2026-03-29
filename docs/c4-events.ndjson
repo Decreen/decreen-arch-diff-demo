@@ -1,1 +1,10 @@
 {"seq":1,"pass":0,"event":"group_nodes","payload":{"id":"group:bootstrap","label":"C4 generation bootstrap","members":[]}}
+{"seq":2,"pass":1,"event":"add_actor","payload":{"id":"actor:user","label":"User"}}
+{"seq":3,"pass":1,"event":"add_external","payload":{"id":"ext:postgresql","label":"PostgreSQL"}}
+{"seq":4,"pass":1,"event":"add_external","payload":{"id":"ext:traefik","label":"Traefik reverse proxy"}}
+{"seq":5,"pass":1,"event":"add_external","payload":{"id":"ext:smtp","label":"SMTP mail server"}}
+{"seq":6,"pass":1,"event":"add_external","payload":{"id":"ext:sentry","label":"Sentry"}}
+{"seq":7,"pass":1,"event":"add_edge","payload":{"id":"edge:user_to_traefik","from":"actor:user","to":"ext:traefik","label":"HTTPS"}}
+{"seq":8,"pass":1,"event":"exclude_candidate","payload":{"id":"candidate:adminer","reason":"Optional DB admin UI in compose; not core application runtime path"}}
+{"seq":9,"pass":1,"event":"group_nodes","payload":{"id":"group:pass1-deployables","label":"Runtime deployables (compose)","members":[]}}
+{"seq":10,"pass":1,"event":"freeze_pass","payload":{"pass":1}}
