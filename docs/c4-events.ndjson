@@ -36,3 +36,5 @@
 {"seq":36,"pass":3,"event":"exclude_candidate","payload":{"id":"candidate:l3_per_route_components","reason":"Omit per-route React components; not modeled as separate C4 components"}}
 {"seq":37,"pass":3,"event":"group_nodes","payload":{"id":"group:l3-components","label":"L3 components (four containers)","members":["component:fe_router","component:fe_openapi_client","component:be_http_api","component:be_persistence","component:pg_storage","component:pg_protocol","component:pre_alembic","component:pre_db_init"]}}
 {"seq":38,"pass":3,"event":"freeze_pass","payload":{"pass":3}}
+{"seq":39,"pass":4,"event":"refine_label","payload":{"id":"sys:app","label":"Full-stack web application (Docker Compose)"}}
+{"seq":40,"pass":4,"event":"freeze_pass","payload":{"pass":4}}

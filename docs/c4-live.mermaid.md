@@ -8,7 +8,7 @@ flowchart TD
   ext_smtp["ext:smtp — SMTP mail server"]
   ext_sentry["ext:sentry — Sentry"]
 
-  subgraph sys_app["sys:app — Application stack"]
+  subgraph sys_app["sys:app — Full-stack web application (Docker Compose)"]
     %% SCOPE: urn:c4:container:frontend
     subgraph c_fe_scope["container:frontend"]
       %% KIND: router
