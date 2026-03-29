@@ -1,0 +1,18 @@
+{
+  "pass": 1,
+  "actors": [
+    {"id": "actor:user", "evidence": "frontend routes and API login flows imply a human operator"}
+  ],
+  "externals": [
+    {"id": "ext:postgresql", "evidence": "compose.yml db service postgres:18; backend config POSTGRES_*"},
+    {"id": "ext:traefik", "evidence": "compose.yml traefik labels on frontend/backend; external network traefik-public"},
+    {"id": "ext:smtp", "evidence": "backend/app/core/config.py SMTP_*; compose backend env SMTP_*"},
+    {"id": "ext:sentry", "evidence": "backend/app/main.py sentry_sdk.init when SENTRY_DSN set"}
+  ],
+  "deployables": [
+    {"name": "frontend", "evidence": "compose.yml frontend service; frontend/Dockerfile"},
+    {"name": "backend", "evidence": "compose.yml backend service; backend/Dockerfile; FastAPI app in backend/app/main.py"},
+    {"name": "db", "evidence": "compose.yml db service image postgres"},
+    {"name": "prestart", "evidence": "compose.yml prestart one-shot same backend image scripts/prestart.sh"}
+  ]
+}

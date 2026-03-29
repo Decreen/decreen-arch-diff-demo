@@ -1,0 +1,71 @@
+{
+  "pass": 3,
+  "selected_containers": [
+    "container:frontend",
+    "container:backend",
+    "container:db",
+    "container:prestart"
+  ],
+  "components": [
+    {
+      "id": "component:fe_router",
+      "container": "container:frontend",
+      "kind": "router",
+      "label": "TanStack Router",
+      "evidence": "frontend/src/main.tsx createRouter; routeTree.gen"
+    },
+    {
+      "id": "component:fe_openapi_client",
+      "container": "container:frontend",
+      "kind": "integration",
+      "label": "OpenAPI HTTP client",
+      "evidence": "frontend/src/main.tsx OpenAPI.BASE = VITE_API_URL"
+    },
+    {
+      "id": "component:be_http_api",
+      "container": "container:backend",
+      "kind": "boundary",
+      "label": "FastAPI application and routers",
+      "evidence": "backend/app/main.py; backend/app/api/main.py"
+    },
+    {
+      "id": "component:be_persistence",
+      "container": "container:backend",
+      "kind": "data_access",
+      "label": "SQLModel engine and CRUD",
+      "evidence": "backend/app/core/db.py create_engine"
+    },
+    {
+      "id": "component:pg_storage",
+      "container": "container:db",
+      "kind": "storage",
+      "label": "PostgreSQL data store",
+      "evidence": "compose.yml postgres image and volume"
+    },
+    {
+      "id": "component:pg_protocol",
+      "container": "container:db",
+      "kind": "boundary",
+      "label": "Client connections / SQL interface",
+      "evidence": "PostgreSQL server accepts SQL from backend and prestart"
+    },
+    {
+      "id": "component:pre_alembic",
+      "container": "container:prestart",
+      "kind": "pipeline",
+      "label": "Alembic migrations",
+      "evidence": "backend/scripts/prestart.sh alembic upgrade head"
+    },
+    {
+      "id": "component:pre_db_init",
+      "container": "container:prestart",
+      "kind": "worker",
+      "label": "initial_data seeding",
+      "evidence": "backend/scripts/prestart.sh python app/initial_data.py; app/initial_data.py init_db"
+    }
+  ],
+  "l3_edges": [
+    {"id": "edge:l3_fe_client_to_be_api", "from": "component:fe_openapi_client", "to": "component:be_http_api"},
+    {"id": "edge:l3_be_persistence_to_pg", "from": "component:be_persistence", "to": "component:pg_storage"}
+  ]
+}
