@@ -8,3 +8,18 @@
 {"seq":8,"pass":1,"event":"exclude_candidate","payload":{"id":"candidate:adminer","reason":"Optional DB admin UI in compose; not core application runtime path"}}
 {"seq":9,"pass":1,"event":"group_nodes","payload":{"id":"group:pass1-deployables","label":"Runtime deployables (compose)","members":[]}}
 {"seq":10,"pass":1,"event":"freeze_pass","payload":{"pass":1}}
+{"seq":11,"pass":2,"event":"set_system_boundary","payload":{"id":"sys:app","label":"Application stack"}}
+{"seq":12,"pass":2,"event":"add_container","payload":{"id":"container:frontend","label":"Web dashboard (static SPA)"}}
+{"seq":13,"pass":2,"event":"add_container","payload":{"id":"container:backend","label":"HTTP API service"}}
+{"seq":14,"pass":2,"event":"add_container","payload":{"id":"container:db","label":"PostgreSQL database"}}
+{"seq":15,"pass":2,"event":"add_container","payload":{"id":"container:prestart","label":"DB migrate and pre-start job"}}
+{"seq":16,"pass":2,"event":"exclude_candidate","payload":{"id":"candidate:github_actions","reason":"CI workflows are build/deploy automation, not application runtime"}}
+{"seq":17,"pass":2,"event":"exclude_candidate","payload":{"id":"candidate:playwright_runner","reason":"Dockerfile.playwright is test tooling, not compose production runtime"}}
+{"seq":18,"pass":2,"event":"add_edge","payload":{"id":"edge:traefik_to_frontend","from":"ext:traefik","to":"container:frontend","label":"HTTP(S) route"}}
+{"seq":19,"pass":2,"event":"add_edge","payload":{"id":"edge:traefik_to_backend","from":"ext:traefik","to":"container:backend","label":"HTTP(S) route"}}
+{"seq":20,"pass":2,"event":"add_edge","payload":{"id":"edge:backend_to_postgres","from":"container:backend","to":"ext:postgresql","label":"SQL"}}
+{"seq":21,"pass":2,"event":"add_edge","payload":{"id":"edge:backend_to_smtp","from":"container:backend","to":"ext:smtp","label":"SMTP"}}
+{"seq":22,"pass":2,"event":"add_edge","payload":{"id":"edge:backend_to_sentry","from":"container:backend","to":"ext:sentry","label":"errors / tracing"}}
+{"seq":23,"pass":2,"event":"add_edge","payload":{"id":"edge:prestart_to_postgres","from":"container:prestart","to":"ext:postgresql","label":"SQL"}}
+{"seq":24,"pass":2,"event":"group_nodes","payload":{"id":"group:l2-containers","label":"Containers inside sys:app","members":["container:frontend","container:backend","container:db","container:prestart"]}}
+{"seq":25,"pass":2,"event":"freeze_pass","payload":{"pass":2}}

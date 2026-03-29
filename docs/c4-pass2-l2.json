@@ -1,0 +1,34 @@
+{
+  "pass": 2,
+  "system": {
+    "id": "sys:app",
+    "label": "Application stack",
+    "evidence": "compose.yml groups frontend, backend, db, prestart as one deployable product"
+  },
+  "containers": [
+    {
+      "id": "container:frontend",
+      "label": "Web dashboard (static SPA)",
+      "evidence": "compose.yml frontend service; Dockerfile frontend; VITE_API_URL build arg"
+    },
+    {
+      "id": "container:backend",
+      "label": "HTTP API service",
+      "evidence": "compose.yml backend service; backend/app/main.py FastAPI"
+    },
+    {
+      "id": "container:db",
+      "label": "PostgreSQL database",
+      "evidence": "compose.yml db image postgres:18"
+    },
+    {
+      "id": "container:prestart",
+      "label": "DB migrate and pre-start job",
+      "evidence": "compose.yml prestart service same backend image, command scripts/prestart.sh"
+    }
+  ],
+  "excluded": [
+    {"id": "candidate:github_actions", "reason": "CI only"},
+    {"id": "candidate:playwright_runner", "reason": "test image only"}
+  ]
+}
