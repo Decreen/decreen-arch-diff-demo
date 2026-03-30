@@ -1,0 +1,18 @@
+{
+  "actors": [
+    {"id": "actor:end_user", "label": "End user", "evidence": ["compose.yml Traefik host rules for dashboard and API"]}
+  ],
+  "externals": [
+    {"id": "ext:postgres", "label": "PostgreSQL", "evidence": ["compose.yml service db image postgres:18"]},
+    {"id": "ext:traefik", "label": "Traefik ingress", "evidence": ["compose.yml traefik labels and traefik-public network"]},
+    {"id": "ext:sentry", "label": "Sentry", "evidence": ["compose.yml SENTRY_DSN on backend/prestart", "backend/app/main.py sentry_sdk.init"]},
+    {"id": "ext:smtp", "label": "SMTP / email delivery", "evidence": ["compose.yml SMTP_HOST, SMTP_USER, SMTP_PASSWORD on backend/prestart"]}
+  ],
+  "deployables": [
+    {"name": "backend", "evidence": ["compose.yml service backend build backend/Dockerfile"]},
+    {"name": "frontend", "evidence": ["compose.yml service frontend build frontend/Dockerfile"]},
+    {"name": "db", "evidence": ["compose.yml service db"]},
+    {"name": "prestart", "evidence": ["compose.yml service prestart command scripts/prestart.sh"]}
+  ],
+  "excluded": ["candidate:adminer"]
+}

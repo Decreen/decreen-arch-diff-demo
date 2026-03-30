@@ -1,0 +1,42 @@
+{"seq":1,"pass":0,"event":"group_nodes","payload":{"id":"group:bootstrap","label":"C4 generation bootstrap","members":[]}}
+{"seq":2,"pass":1,"event":"add_actor","payload":{"id":"actor:end_user","label":"End user"}}
+{"seq":3,"pass":1,"event":"add_external","payload":{"id":"ext:postgres","label":"PostgreSQL"}}
+{"seq":4,"pass":1,"event":"add_external","payload":{"id":"ext:traefik","label":"Traefik ingress"}}
+{"seq":5,"pass":1,"event":"add_external","payload":{"id":"ext:sentry","label":"Sentry"}}
+{"seq":6,"pass":1,"event":"add_external","payload":{"id":"ext:smtp","label":"SMTP / email delivery"}}
+{"seq":7,"pass":1,"event":"group_nodes","payload":{"id":"group:runtime_externals","label":"Runtime external systems","members":["ext:postgres","ext:traefik","ext:sentry","ext:smtp"]}}
+{"seq":8,"pass":1,"event":"add_edge","payload":{"id":"edge:user_to_traefik","from":"actor:end_user","to":"ext:traefik","label":"HTTPS (dashboard / API hosts)"}}
+{"seq":9,"pass":1,"event":"exclude_candidate","payload":{"id":"candidate:adminer","reason":"DB admin UI; not part of primary application runtime path"}}
+{"seq":10,"pass":1,"event":"group_nodes","payload":{"id":"group:deployables","label":"Compose-defined deployable units","members":[],"services":["backend","frontend","db","prestart"]}}
+{"seq":11,"pass":1,"event":"freeze_pass","payload":{"pass":1}}
+{"seq":12,"pass":2,"event":"set_system_boundary","payload":{"id":"sys:platform","label":"Application platform (compose stack)"}}
+{"seq":13,"pass":2,"event":"add_container","payload":{"id":"container:spa","label":"SPA (Vite build via nginx)","technology":"nginx + static Vite assets"}}
+{"seq":14,"pass":2,"event":"add_container","payload":{"id":"container:api","label":"HTTP API","technology":"FastAPI (Python)"}}
+{"seq":15,"pass":2,"event":"add_container","payload":{"id":"container:postgres","label":"Relational database","technology":"PostgreSQL 18"}}
+{"seq":16,"pass":2,"event":"add_container","payload":{"id":"container:prestart","label":"Prestart job","technology":"backend image, prestart.sh"}}
+{"seq":17,"pass":2,"event":"exclude_candidate","payload":{"id":"candidate:adminer_container","reason":"Adminer omitted from L2; optional ops UI only"}}
+{"seq":18,"pass":2,"event":"add_edge","payload":{"id":"edge:traefik_to_spa","from":"ext:traefik","to":"container:spa","label":"Route dashboard host"}}
+{"seq":19,"pass":2,"event":"add_edge","payload":{"id":"edge:traefik_to_api","from":"ext:traefik","to":"container:api","label":"Route API host"}}
+{"seq":20,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_postgres","from":"container:api","to":"container:postgres","label":"SQL"}}
+{"seq":21,"pass":2,"event":"add_edge","payload":{"id":"edge:prestart_to_postgres","from":"container:prestart","to":"container:postgres","label":"Migrations / startup"}}
+{"seq":22,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_sentry","from":"container:api","to":"ext:sentry","label":"Error telemetry"}}
+{"seq":23,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_smtp","from":"container:api","to":"ext:smtp","label":"Outbound email"}}
+{"seq":24,"pass":2,"event":"freeze_pass","payload":{"pass":2}}
+{"seq":25,"pass":3,"event":"add_component","payload":{"id":"component:spa_router","container":"container:spa","label":"Client router","kind":"router"}}
+{"seq":26,"pass":3,"event":"add_component","payload":{"id":"component:spa_api_client","container":"container:spa","label":"OpenAPI HTTP client","kind":"integration"}}
+{"seq":27,"pass":3,"event":"add_component","payload":{"id":"component:api_http_surface","container":"container:api","label":"FastAPI route surface","kind":"service_layer"}}
+{"seq":28,"pass":3,"event":"add_component","payload":{"id":"component:api_persistence","container":"container:api","label":"CRUD and ORM access","kind":"data_access"}}
+{"seq":29,"pass":3,"event":"add_component","payload":{"id":"component:db_storage","container":"container:postgres","label":"PostgreSQL server","kind":"storage"}}
+{"seq":30,"pass":3,"event":"add_component","payload":{"id":"component:prestart_alembic","container":"container:prestart","label":"Alembic migrations","kind":"pipeline"}}
+{"seq":31,"pass":3,"event":"add_component","payload":{"id":"component:prestart_seed","container":"container:prestart","label":"DB bootstrap scripts","kind":"processing"}}
+{"seq":32,"pass":3,"event":"add_edge","payload":{"id":"edge:spa_router_to_client","from":"component:spa_router","to":"component:spa_api_client","label":"UI navigation and data hooks"}}
+{"seq":33,"pass":3,"event":"add_edge","payload":{"id":"edge:spa_client_to_api","from":"component:spa_api_client","to":"component:api_http_surface","label":"HTTPS JSON API"}}
+{"seq":34,"pass":3,"event":"add_edge","payload":{"id":"edge:api_routes_to_persistence","from":"component:api_http_surface","to":"component:api_persistence","label":"Request handling"}}
+{"seq":35,"pass":3,"event":"add_edge","payload":{"id":"edge:persistence_to_db","from":"component:api_persistence","to":"component:db_storage","label":"SQL"}}
+{"seq":36,"pass":3,"event":"add_edge","payload":{"id":"edge:alembic_to_db","from":"component:prestart_alembic","to":"component:db_storage","label":"DDL migrations"}}
+{"seq":37,"pass":3,"event":"add_edge","payload":{"id":"edge:seed_to_db","from":"component:prestart_seed","to":"component:db_storage","label":"Startup data"}}
+{"seq":38,"pass":3,"event":"exclude_candidate","payload":{"id":"candidate:l3_adminer","reason":"Adminer not modeled at L3"}}
+{"seq":39,"pass":3,"event":"freeze_pass","payload":{"pass":3}}
+{"seq":40,"pass":4,"event":"refine_label","payload":{"id":"sys:platform","label":"Full-stack web application (Docker Compose stack)"}}
+{"seq":41,"pass":4,"event":"refine_label","payload":{"id":"container:spa","label":"Dashboard SPA (Vite, nginx)"}}
+{"seq":42,"pass":4,"event":"freeze_pass","payload":{"pass":4}}
