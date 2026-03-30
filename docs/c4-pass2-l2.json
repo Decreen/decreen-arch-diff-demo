@@ -1,0 +1,10 @@
+{
+  "system": {"id": "sys:platform", "label": "Application platform (compose stack)"},
+  "containers": [
+    {"id": "container:spa", "label": "SPA (Vite build via nginx)", "technology": "nginx + static Vite assets"},
+    {"id": "container:api", "label": "HTTP API", "technology": "FastAPI (Python)"},
+    {"id": "container:postgres", "label": "Relational database", "technology": "PostgreSQL 18"},
+    {"id": "container:prestart", "label": "Prestart job", "technology": "backend image, prestart.sh"}
+  ],
+  "excluded": ["candidate:adminer_container"]
+}

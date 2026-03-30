@@ -9,3 +9,16 @@
 {"seq":9,"pass":1,"event":"exclude_candidate","payload":{"id":"candidate:adminer","reason":"DB admin UI; not part of primary application runtime path"}}
 {"seq":10,"pass":1,"event":"group_nodes","payload":{"id":"group:deployables","label":"Compose-defined deployable units","members":[],"services":["backend","frontend","db","prestart"]}}
 {"seq":11,"pass":1,"event":"freeze_pass","payload":{"pass":1}}
+{"seq":12,"pass":2,"event":"set_system_boundary","payload":{"id":"sys:platform","label":"Application platform (compose stack)"}}
+{"seq":13,"pass":2,"event":"add_container","payload":{"id":"container:spa","label":"SPA (Vite build via nginx)","technology":"nginx + static Vite assets"}}
+{"seq":14,"pass":2,"event":"add_container","payload":{"id":"container:api","label":"HTTP API","technology":"FastAPI (Python)"}}
+{"seq":15,"pass":2,"event":"add_container","payload":{"id":"container:postgres","label":"Relational database","technology":"PostgreSQL 18"}}
+{"seq":16,"pass":2,"event":"add_container","payload":{"id":"container:prestart","label":"Prestart job","technology":"backend image, prestart.sh"}}
+{"seq":17,"pass":2,"event":"exclude_candidate","payload":{"id":"candidate:adminer_container","reason":"Adminer omitted from L2; optional ops UI only"}}
+{"seq":18,"pass":2,"event":"add_edge","payload":{"id":"edge:traefik_to_spa","from":"ext:traefik","to":"container:spa","label":"Route dashboard host"}}
+{"seq":19,"pass":2,"event":"add_edge","payload":{"id":"edge:traefik_to_api","from":"ext:traefik","to":"container:api","label":"Route API host"}}
+{"seq":20,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_postgres","from":"container:api","to":"container:postgres","label":"SQL"}}
+{"seq":21,"pass":2,"event":"add_edge","payload":{"id":"edge:prestart_to_postgres","from":"container:prestart","to":"container:postgres","label":"Migrations / startup"}}
+{"seq":22,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_sentry","from":"container:api","to":"ext:sentry","label":"Error telemetry"}}
+{"seq":23,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_smtp","from":"container:api","to":"ext:smtp","label":"Outbound email"}}
+{"seq":24,"pass":2,"event":"freeze_pass","payload":{"pass":2}}
