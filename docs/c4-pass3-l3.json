@@ -1,0 +1,12 @@
+{
+  "selected_containers": ["container:spa", "container:api", "container:postgres", "container:prestart"],
+  "components": [
+    {"id": "component:spa_router", "container": "container:spa", "kind": "router"},
+    {"id": "component:spa_api_client", "container": "container:spa", "kind": "integration"},
+    {"id": "component:api_http_surface", "container": "container:api", "kind": "service_layer"},
+    {"id": "component:api_persistence", "container": "container:api", "kind": "data_access"},
+    {"id": "component:db_storage", "container": "container:postgres", "kind": "storage"},
+    {"id": "component:prestart_alembic", "container": "container:prestart", "kind": "pipeline"},
+    {"id": "component:prestart_seed", "container": "container:prestart", "kind": "processing"}
+  ]
+}

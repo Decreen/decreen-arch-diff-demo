@@ -22,3 +22,18 @@
 {"seq":22,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_sentry","from":"container:api","to":"ext:sentry","label":"Error telemetry"}}
 {"seq":23,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_smtp","from":"container:api","to":"ext:smtp","label":"Outbound email"}}
 {"seq":24,"pass":2,"event":"freeze_pass","payload":{"pass":2}}
+{"seq":25,"pass":3,"event":"add_component","payload":{"id":"component:spa_router","container":"container:spa","label":"Client router","kind":"router"}}
+{"seq":26,"pass":3,"event":"add_component","payload":{"id":"component:spa_api_client","container":"container:spa","label":"OpenAPI HTTP client","kind":"integration"}}
+{"seq":27,"pass":3,"event":"add_component","payload":{"id":"component:api_http_surface","container":"container:api","label":"FastAPI route surface","kind":"service_layer"}}
+{"seq":28,"pass":3,"event":"add_component","payload":{"id":"component:api_persistence","container":"container:api","label":"CRUD and ORM access","kind":"data_access"}}
+{"seq":29,"pass":3,"event":"add_component","payload":{"id":"component:db_storage","container":"container:postgres","label":"PostgreSQL server","kind":"storage"}}
+{"seq":30,"pass":3,"event":"add_component","payload":{"id":"component:prestart_alembic","container":"container:prestart","label":"Alembic migrations","kind":"pipeline"}}
+{"seq":31,"pass":3,"event":"add_component","payload":{"id":"component:prestart_seed","container":"container:prestart","label":"DB bootstrap scripts","kind":"processing"}}
+{"seq":32,"pass":3,"event":"add_edge","payload":{"id":"edge:spa_router_to_client","from":"component:spa_router","to":"component:spa_api_client","label":"UI navigation and data hooks"}}
+{"seq":33,"pass":3,"event":"add_edge","payload":{"id":"edge:spa_client_to_api","from":"component:spa_api_client","to":"component:api_http_surface","label":"HTTPS JSON API"}}
+{"seq":34,"pass":3,"event":"add_edge","payload":{"id":"edge:api_routes_to_persistence","from":"component:api_http_surface","to":"component:api_persistence","label":"Request handling"}}
+{"seq":35,"pass":3,"event":"add_edge","payload":{"id":"edge:persistence_to_db","from":"component:api_persistence","to":"component:db_storage","label":"SQL"}}
+{"seq":36,"pass":3,"event":"add_edge","payload":{"id":"edge:alembic_to_db","from":"component:prestart_alembic","to":"component:db_storage","label":"DDL migrations"}}
+{"seq":37,"pass":3,"event":"add_edge","payload":{"id":"edge:seed_to_db","from":"component:prestart_seed","to":"component:db_storage","label":"Startup data"}}
+{"seq":38,"pass":3,"event":"exclude_candidate","payload":{"id":"candidate:l3_adminer","reason":"Adminer not modeled at L3"}}
+{"seq":39,"pass":3,"event":"freeze_pass","payload":{"pass":3}}
