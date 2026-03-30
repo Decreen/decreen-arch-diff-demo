@@ -5,9 +5,9 @@ flowchart TD
   actor_end_user["actor:end_user — End user (browser)"]
   ext_smtp["ext:smtp — SMTP email service"]
   ext_sentry["ext:sentry — Sentry (error monitoring)"]
-  subgraph sys_full_stack["sys:full_stack — Full-stack web application"]
+  subgraph sys_full_stack["sys:full_stack — Full-stack web application (FastAPI + React SPA)"]
     direction TB
-    subgraph spa_c["container:spa_web — SPA + static delivery"]
+    subgraph spa_c["container:spa_web — Web client (Vite SPA, Nginx static host)"]
       direction TB
       %% SCOPE: urn:c4:container:container:spa_web
       spa_r["component:spa_tanstack_router — Client-side router"]
@@ -17,7 +17,7 @@ flowchart TD
       spa_q["component:spa_react_query — Server-state cache"]
       %% KIND: storage
     end
-    subgraph api_c["container:fastapi_api — HTTP API service"]
+    subgraph api_c["container:fastapi_api — Backend API (FastAPI ASGI)"]
       direction TB
       %% SCOPE: urn:c4:container:container:fastapi_api
       api_rt["component:api_fastapi_routes — HTTP API surface"]
@@ -27,7 +27,7 @@ flowchart TD
       api_d["component:api_crud_sqlmodel — Persistence layer"]
       %% KIND: data_access
     end
-    subgraph db_c["container:postgres_db — PostgreSQL server"]
+    subgraph db_c["container:postgres_db — PostgreSQL database server"]
       direction TB
       %% SCOPE: urn:c4:container:container:postgres_db
       db_e["component:db_postgres_engine — PostgreSQL storage engine"]
@@ -37,7 +37,7 @@ flowchart TD
       db_a["component:db_app_relations — Application relational data"]
       %% KIND: storage
     end
-    subgraph pre_c["container:prestart_job — Prestart job"]
+    subgraph pre_c["container:prestart_job — Prestart job (migrations + initial data)"]
       direction TB
       %% SCOPE: urn:c4:container:container:prestart_job
       pre_a["component:pre_alembic_upgrade — Alembic upgrade head"]

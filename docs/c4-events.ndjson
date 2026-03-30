@@ -41,3 +41,7 @@
 {"seq":41,"pass":3,"event":"add_edge","payload":{"id":"edge:pre_alembic_to_db_engine","from":"component:pre_alembic_upgrade","to":"component:db_postgres_engine","label":"DDL/DML migrations"}}
 {"seq":42,"pass":3,"event":"add_edge","payload":{"id":"edge:pre_seed_to_app_data","from":"component:pre_initial_data","to":"component:db_app_relations","label":"Seed rows"}}
 {"seq":43,"pass":3,"event":"freeze_pass","payload":{"pass":3,"note":"L3 components for all four L2 containers (code-derived)"}}
+{"seq":44,"pass":4,"event":"refine_label","payload":{"id":"sys:full_stack","label":"Full-stack web application (FastAPI + React SPA)"}}
+{"seq":45,"pass":4,"event":"refine_label","payload":{"id":"container:spa_web","label":"Web client (Vite SPA, Nginx static host)"}}
+{"seq":46,"pass":4,"event":"refine_label","payload":{"id":"container:fastapi_api","label":"Backend API (FastAPI ASGI)"}}
+{"seq":47,"pass":4,"event":"freeze_pass","payload":{"pass":4,"note":"Final render from stream only"}}
