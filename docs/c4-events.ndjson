@@ -20,3 +20,14 @@
 {"seq":20,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_sentry","from":"container:fastapi_api","to":"ext:sentry","label":"SDK telemetry"}}
 {"seq":21,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_email","from":"container:fastapi_api","to":"ext:outbound_email","label":"Send mail"}}
 {"seq":22,"pass":2,"event":"freeze_pass","payload":{"pass":2}}
+{"seq":23,"pass":3,"event":"add_component","payload":{"id":"component:nginx_router","container_id":"container:nginx_spa","label":"Nginx HTTP edge (static routing)","kind":"router"}}
+{"seq":24,"pass":3,"event":"add_component","payload":{"id":"component:static_spa_delivery","container_id":"container:nginx_spa","label":"Built SPA static assets (Vite output)","kind":"storage"}}
+{"seq":25,"pass":3,"event":"add_component","payload":{"id":"component:api_aggregate_router","container_id":"container:fastapi_api","label":"FastAPI aggregate API router","kind":"router"}}
+{"seq":26,"pass":3,"event":"add_component","payload":{"id":"component:http_route_handlers","container_id":"container:fastapi_api","label":"HTTP route handlers (domain endpoints)","kind":"service_layer"}}
+{"seq":27,"pass":3,"event":"add_component","payload":{"id":"component:sqlmodel_access","container_id":"container:fastapi_api","label":"SQLModel engine, sessions, and CRUD","kind":"data_access"}}
+{"seq":28,"pass":3,"event":"exclude_candidate","payload":{"id":"candidate:alembic_as_runtime_service","reason":"Alembic lives under backend/app/alembic as migration tooling, not a separate long-running container."}}
+{"seq":29,"pass":3,"event":"add_edge","payload":{"id":"edge:nginx_router_to_static","from":"component:nginx_router","to":"component:static_spa_delivery","label":"Serves static files"}}
+{"seq":30,"pass":3,"event":"add_edge","payload":{"id":"edge:aggregate_to_handlers","from":"component:api_aggregate_router","to":"component:http_route_handlers","label":"Includes route modules"}}
+{"seq":31,"pass":3,"event":"add_edge","payload":{"id":"edge:handlers_to_sqlmodel","from":"component:http_route_handlers","to":"component:sqlmodel_access","label":"Uses DB session / CRUD"}}
+{"seq":32,"pass":3,"event":"add_edge","payload":{"id":"edge:sqlmodel_to_postgres","from":"component:sqlmodel_access","to":"ext:postgres","label":"SQL over psycopg"}}
+{"seq":33,"pass":3,"event":"freeze_pass","payload":{"pass":3}}
