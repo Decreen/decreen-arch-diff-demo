@@ -2,7 +2,7 @@
 
 ```mermaid
 flowchart TB
-  subgraph boundary["sys:platform — Application platform (compose stack)"]
+  subgraph boundary["sys:platform — Full-stack web application (Docker Compose stack)"]
     subgraph spa["%% SCOPE: urn:c4:container:container:spa"]
       spa_r["%% KIND: router<br/>component:spa_router<br/>Client router"]
       spa_c["%% KIND: integration<br/>component:spa_api_client<br/>OpenAPI HTTP client"]

@@ -37,3 +37,6 @@
 {"seq":37,"pass":3,"event":"add_edge","payload":{"id":"edge:seed_to_db","from":"component:prestart_seed","to":"component:db_storage","label":"Startup data"}}
 {"seq":38,"pass":3,"event":"exclude_candidate","payload":{"id":"candidate:l3_adminer","reason":"Adminer not modeled at L3"}}
 {"seq":39,"pass":3,"event":"freeze_pass","payload":{"pass":3}}
+{"seq":40,"pass":4,"event":"refine_label","payload":{"id":"sys:platform","label":"Full-stack web application (Docker Compose stack)"}}
+{"seq":41,"pass":4,"event":"refine_label","payload":{"id":"container:spa","label":"Dashboard SPA (Vite, nginx)"}}
+{"seq":42,"pass":4,"event":"freeze_pass","payload":{"pass":4}}
