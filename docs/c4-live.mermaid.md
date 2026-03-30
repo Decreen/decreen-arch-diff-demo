@@ -1,15 +1,20 @@
 # Live C4 Preview
 
 ```mermaid
-flowchart LR
+flowchart TB
+  subgraph sys_full_stack["sys:full_stack_app — Full-stack application"]
+    container_nginx["container:nginx_spa<br/>Frontend static site (Nginx)"]
+    container_api["container:fastapi_api<br/>Backend HTTP API (FastAPI)"]
+  end
+
   actor_end_user["actor:end_user<br/>End user"]
-  group_deployables["group:pass1-deployables<br/>Runtime deployables"]
   ext_postgres["ext:postgres<br/>PostgreSQL"]
   ext_sentry["ext:sentry<br/>Sentry"]
   ext_email["ext:outbound_email<br/>Outbound email"]
 
-  actor_end_user -->|"Uses application"| group_deployables
-  group_deployables -->|"Persists data"| ext_postgres
-  group_deployables -->|"Error / performance telemetry"| ext_sentry
-  group_deployables -->|"Transactional email"| ext_email
+  actor_end_user -->|"Uses web UI"| container_nginx
+  actor_end_user -->|"API requests (browser / HTTPS)"| container_api
+  container_api -->|"SQL / persistence"| ext_postgres
+  container_api -->|"SDK telemetry"| ext_sentry
+  container_api -->|"Send mail"| ext_email
 ```

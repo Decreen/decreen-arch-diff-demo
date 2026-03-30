@@ -9,3 +9,14 @@
 {"seq":9,"pass":1,"event":"add_edge","payload":{"id":"edge:deployables_to_sentry","from":"group:pass1-deployables","to":"ext:sentry","label":"Error / performance telemetry"}}
 {"seq":10,"pass":1,"event":"add_edge","payload":{"id":"edge:deployables_to_email","from":"group:pass1-deployables","to":"ext:outbound_email","label":"Transactional email"}}
 {"seq":11,"pass":1,"event":"freeze_pass","payload":{"pass":1}}
+{"seq":12,"pass":2,"event":"set_system_boundary","payload":{"id":"sys:full_stack_app","label":"Full-stack application (FastAPI + Vite SPA)"}}
+{"seq":13,"pass":2,"event":"add_container","payload":{"id":"container:nginx_spa","label":"Frontend static site (Nginx serving Vite build)"}}
+{"seq":14,"pass":2,"event":"add_container","payload":{"id":"container:fastapi_api","label":"Backend HTTP API (FastAPI)"}}
+{"seq":15,"pass":2,"event":"exclude_candidate","payload":{"id":"candidate:repo_root_node_service","reason":"Root package.json only orchestrates workspace scripts; no standalone Node service runtime."}}
+{"seq":16,"pass":2,"event":"exclude_candidate","payload":{"id":"candidate:playwright_image_prod","reason":"frontend/Dockerfile.playwright supports Playwright tests, not production app runtime."}}
+{"seq":17,"pass":2,"event":"add_edge","payload":{"id":"edge:actor_uses_spa","from":"actor:end_user","to":"container:nginx_spa","label":"Uses web UI"}}
+{"seq":18,"pass":2,"event":"add_edge","payload":{"id":"edge:browser_to_api","from":"actor:end_user","to":"container:fastapi_api","label":"API requests (browser / HTTPS)"}}
+{"seq":19,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_postgres","from":"container:fastapi_api","to":"ext:postgres","label":"SQL / persistence"}}
+{"seq":20,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_sentry","from":"container:fastapi_api","to":"ext:sentry","label":"SDK telemetry"}}
+{"seq":21,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_email","from":"container:fastapi_api","to":"ext:outbound_email","label":"Send mail"}}
+{"seq":22,"pass":2,"event":"freeze_pass","payload":{"pass":2}}
