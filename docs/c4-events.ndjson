@@ -1,1 +1,13 @@
 {"seq":1,"pass":0,"event":"group_nodes","payload":{"id":"group:bootstrap","label":"C4 generation bootstrap","members":[]}}
+{"seq":2,"pass":1,"event":"add_actor","payload":{"id":"actor:end_user","label":"End user (browser)"}}
+{"seq":3,"pass":1,"event":"add_external","payload":{"id":"ext:postgresql","label":"PostgreSQL"}}
+{"seq":4,"pass":1,"event":"add_external","payload":{"id":"ext:smtp","label":"SMTP email service"}}
+{"seq":5,"pass":1,"event":"add_external","payload":{"id":"ext:sentry","label":"Sentry (error monitoring)"}}
+{"seq":6,"pass":1,"event":"group_nodes","payload":{"id":"group:l1_system","label":"Full-stack web application (boundary TBD in Pass 2)","members":[]}}
+{"seq":7,"pass":1,"event":"group_nodes","payload":{"id":"group:deploy_frontend","label":"Deployable: frontend (Vite build, Nginx static delivery)","members":[]}}
+{"seq":8,"pass":1,"event":"group_nodes","payload":{"id":"group:deploy_backend","label":"Deployable: backend (FastAPI ASGI service)","members":[]}}
+{"seq":9,"pass":1,"event":"add_edge","payload":{"id":"edge:user_to_system","from":"actor:end_user","to":"group:l1_system","label":"Uses web UI"}}
+{"seq":10,"pass":1,"event":"add_edge","payload":{"id":"edge:system_to_postgres","from":"group:l1_system","to":"ext:postgresql","label":"SQL (SQLAlchemy)"}}
+{"seq":11,"pass":1,"event":"add_edge","payload":{"id":"edge:system_to_smtp","from":"group:l1_system","to":"ext:smtp","label":"Outbound email (when configured)"}}
+{"seq":12,"pass":1,"event":"add_edge","payload":{"id":"edge:system_to_sentry","from":"group:l1_system","to":"ext:sentry","label":"Error telemetry (non-local env)"}}
+{"seq":13,"pass":1,"event":"freeze_pass","payload":{"pass":1,"note":"Runtime inventory from source and Docker/entrypoints only"}}
