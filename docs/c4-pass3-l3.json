@@ -1,0 +1,80 @@
+{
+  "pass": 3,
+  "selected_containers": [
+    "container:spa_web",
+    "container:fastapi_api",
+    "container:postgres_db",
+    "container:prestart_job"
+  ],
+  "components_by_container": {
+    "container:spa_web": [
+      {
+        "id": "component:spa_tanstack_router",
+        "kind": "router",
+        "capabilities": ["routing", "subsystems"]
+      },
+      {
+        "id": "component:spa_openapi_client",
+        "kind": "integration",
+        "capabilities": ["API", "subsystems"]
+      },
+      {
+        "id": "component:spa_react_query",
+        "kind": "storage",
+        "capabilities": ["state", "processing"]
+      }
+    ],
+    "container:fastapi_api": [
+      {
+        "id": "component:api_fastapi_routes",
+        "kind": "router",
+        "capabilities": ["API", "routing"]
+      },
+      {
+        "id": "component:api_route_handlers",
+        "kind": "service_layer",
+        "capabilities": ["processing", "subsystems"]
+      },
+      {
+        "id": "component:api_crud_sqlmodel",
+        "kind": "data_access",
+        "capabilities": ["state", "API"]
+      }
+    ],
+    "container:postgres_db": [
+      {
+        "id": "component:db_postgres_engine",
+        "kind": "storage",
+        "capabilities": ["state", "processing"]
+      },
+      {
+        "id": "component:db_schema_migrations",
+        "kind": "pipeline",
+        "capabilities": ["processing", "subsystems"]
+      },
+      {
+        "id": "component:db_app_relations",
+        "kind": "storage",
+        "capabilities": ["state", "subsystems"]
+      }
+    ],
+    "container:prestart_job": [
+      {
+        "id": "component:pre_alembic_upgrade",
+        "kind": "pipeline",
+        "capabilities": ["processing", "subsystems"]
+      },
+      {
+        "id": "component:pre_initial_data",
+        "kind": "worker",
+        "capabilities": ["processing", "state"]
+      },
+      {
+        "id": "component:pre_db_readiness",
+        "kind": "integration",
+        "capabilities": ["routing", "subsystems"]
+      }
+    ]
+  },
+  "seq_range": [27, 43]
+}

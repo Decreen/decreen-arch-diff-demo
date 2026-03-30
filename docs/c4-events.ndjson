@@ -24,3 +24,20 @@
 {"seq":24,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_smtp","from":"container:fastapi_api","to":"ext:smtp","label":"SMTP (when configured)"}}
 {"seq":25,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_sentry","from":"container:fastapi_api","to":"ext:sentry","label":"Sentry SDK"}}
 {"seq":26,"pass":2,"event":"freeze_pass","payload":{"pass":2,"note":"Containers from compose.yml services and Dockerfiles"}}
+{"seq":27,"pass":3,"event":"add_component","payload":{"id":"component:spa_tanstack_router","label":"Client-side router (TanStack Router)","container":"container:spa_web","kind":"router"}}
+{"seq":28,"pass":3,"event":"add_component","payload":{"id":"component:spa_openapi_client","label":"Generated OpenAPI HTTP client","container":"container:spa_web","kind":"integration"}}
+{"seq":29,"pass":3,"event":"add_component","payload":{"id":"component:spa_react_query","label":"Server-state cache (TanStack Query)","container":"container:spa_web","kind":"storage"}}
+{"seq":30,"pass":3,"event":"add_component","payload":{"id":"component:api_fastapi_routes","label":"HTTP API surface (mounted routers)","container":"container:fastapi_api","kind":"router"}}
+{"seq":31,"pass":3,"event":"add_component","payload":{"id":"component:api_route_handlers","label":"Route handlers and orchestration","container":"container:fastapi_api","kind":"service_layer"}}
+{"seq":32,"pass":3,"event":"add_component","payload":{"id":"component:api_crud_sqlmodel","label":"Persistence layer (CRUD, SQLModel)","container":"container:fastapi_api","kind":"data_access"}}
+{"seq":33,"pass":3,"event":"add_component","payload":{"id":"component:db_postgres_engine","label":"PostgreSQL storage engine","container":"container:postgres_db","kind":"storage"}}
+{"seq":34,"pass":3,"event":"add_component","payload":{"id":"component:db_schema_migrations","label":"Schema migrations target (Alembic)","container":"container:postgres_db","kind":"pipeline"}}
+{"seq":35,"pass":3,"event":"add_component","payload":{"id":"component:db_app_relations","label":"Application relational data","container":"container:postgres_db","kind":"storage"}}
+{"seq":36,"pass":3,"event":"add_component","payload":{"id":"component:pre_alembic_upgrade","label":"Alembic upgrade head","container":"container:prestart_job","kind":"pipeline"}}
+{"seq":37,"pass":3,"event":"add_component","payload":{"id":"component:pre_initial_data","label":"Initial data seed script","container":"container:prestart_job","kind":"worker"}}
+{"seq":38,"pass":3,"event":"add_component","payload":{"id":"component:pre_db_readiness","label":"DB readiness check before migrate","container":"container:prestart_job","kind":"integration"}}
+{"seq":39,"pass":3,"event":"add_edge","payload":{"id":"edge:spa_client_to_api_routes","from":"component:spa_openapi_client","to":"component:api_fastapi_routes","label":"HTTPS JSON"}}
+{"seq":40,"pass":3,"event":"add_edge","payload":{"id":"edge:api_crud_to_db_engine","from":"component:api_crud_sqlmodel","to":"component:db_postgres_engine","label":"SQL"}}
+{"seq":41,"pass":3,"event":"add_edge","payload":{"id":"edge:pre_alembic_to_db_engine","from":"component:pre_alembic_upgrade","to":"component:db_postgres_engine","label":"DDL/DML migrations"}}
+{"seq":42,"pass":3,"event":"add_edge","payload":{"id":"edge:pre_seed_to_app_data","from":"component:pre_initial_data","to":"component:db_app_relations","label":"Seed rows"}}
+{"seq":43,"pass":3,"event":"freeze_pass","payload":{"pass":3,"note":"L3 components for all four L2 containers (code-derived)"}}
