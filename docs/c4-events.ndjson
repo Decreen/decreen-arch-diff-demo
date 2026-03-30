@@ -21,3 +21,14 @@
 {"seq":21,"pass":2,"event":"add_edge","payload":{"id":"edge:backend_to_smtp","from":"container:backend","to":"ext:smtp","label":"Send email"}}
 {"seq":22,"pass":2,"event":"add_edge","payload":{"id":"edge:backend_to_sentry","from":"container:backend","to":"ext:sentry","label":"Error telemetry"}}
 {"seq":23,"pass":2,"event":"freeze_pass","payload":{"pass":2}}
+{"seq":24,"pass":3,"event":"add_component","payload":{"id":"component:spa_router","label":"SPA routing","parent":"container:frontend","kind":"router"}}
+{"seq":25,"pass":3,"event":"add_component","payload":{"id":"component:openapi_client","label":"Generated OpenAPI HTTP client","parent":"container:frontend","kind":"integration"}}
+{"seq":26,"pass":3,"event":"add_component","payload":{"id":"component:react_query_layer","label":"TanStack Query client state","parent":"container:frontend","kind":"service_layer"}}
+{"seq":27,"pass":3,"event":"add_component","payload":{"id":"component:fastapi_api_router","label":"FastAPI API router aggregation","parent":"container:backend","kind":"router"}}
+{"seq":28,"pass":3,"event":"add_component","payload":{"id":"component:http_route_handlers","label":"HTTP route handlers","parent":"container:backend","kind":"service_layer"}}
+{"seq":29,"pass":3,"event":"add_component","payload":{"id":"component:sqlalchemy_engine","label":"SQLAlchemy engine and sessions","parent":"container:backend","kind":"data_access"}}
+{"seq":30,"pass":3,"event":"add_component","payload":{"id":"component:postgres_storage","label":"PGDATA volume persistence","parent":"container:postgres","kind":"storage"}}
+{"seq":31,"pass":3,"event":"add_component","payload":{"id":"component:postgres_server","label":"PostgreSQL server","parent":"container:postgres","kind":"data_access"}}
+{"seq":32,"pass":3,"event":"add_edge","payload":{"id":"edge:openapi_to_handlers","from":"component:openapi_client","to":"component:http_route_handlers","label":"HTTPS JSON"}}
+{"seq":33,"pass":3,"event":"add_edge","payload":{"id":"edge:engine_to_pg","from":"component:sqlalchemy_engine","to":"component:postgres_server","label":"SQL over network"}}
+{"seq":34,"pass":3,"event":"freeze_pass","payload":{"pass":3}}
