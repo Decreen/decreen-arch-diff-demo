@@ -1,0 +1,14 @@
+{
+  "pass": 3,
+  "selected_containers": ["container:frontend", "container:backend", "container:postgres"],
+  "components": [
+    {"id": "component:spa_router", "parent": "container:frontend", "kind": "router", "evidence": "frontend/src/main.tsx createRouter, RouterProvider"},
+    {"id": "component:openapi_client", "parent": "container:frontend", "kind": "integration", "evidence": "frontend/src/main.tsx OpenAPI from ./client"},
+    {"id": "component:react_query_layer", "parent": "container:frontend", "kind": "service_layer", "evidence": "frontend/src/main.tsx QueryClientProvider, QueryClient"},
+    {"id": "component:fastapi_api_router", "parent": "container:backend", "kind": "router", "evidence": "backend/app/api/main.py api_router"},
+    {"id": "component:http_route_handlers", "parent": "container:backend", "kind": "service_layer", "evidence": "backend/app/api/main.py include_router login, users, items, utils"},
+    {"id": "component:sqlalchemy_engine", "parent": "container:backend", "kind": "data_access", "evidence": "backend/app/core/db.py create_engine, Session"},
+    {"id": "component:postgres_storage", "parent": "container:postgres", "kind": "storage", "evidence": "compose.yml volumes app-db-data, PGDATA"},
+    {"id": "component:postgres_server", "parent": "container:postgres", "kind": "data_access", "evidence": "compose.yml service db image postgres:18"}
+  ]
+}

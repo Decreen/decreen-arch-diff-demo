@@ -1,0 +1,13 @@
+{
+  "pass": 2,
+  "system": {"id": "sys:fullstack_app", "label": "Full-stack web application"},
+  "containers": [
+    {"id": "container:frontend", "label": "Web frontend", "technology": "Vite / SPA", "evidence": "compose.yml service frontend, frontend/src/main.tsx"},
+    {"id": "container:backend", "label": "API backend", "technology": "FastAPI", "evidence": "compose.yml service backend, backend/app/main.py"},
+    {"id": "container:postgres", "label": "PostgreSQL database", "technology": "PostgreSQL 18", "evidence": "compose.yml service db image postgres:18"}
+  ],
+  "excluded": [
+    {"id": "candidate:prestart_job", "reason": "compose.yml prestart one-shot; scripts/prestart.sh runs migrations then exits"},
+    {"id": "candidate:adminer_service", "reason": "compose.yml adminer is optional admin UI"}
+  ]
+}
