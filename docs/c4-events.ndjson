@@ -31,3 +31,5 @@
 {"seq":31,"pass":3,"event":"add_edge","payload":{"id":"edge:handlers_to_sqlmodel","from":"component:http_route_handlers","to":"component:sqlmodel_access","label":"Uses DB session / CRUD"}}
 {"seq":32,"pass":3,"event":"add_edge","payload":{"id":"edge:sqlmodel_to_postgres","from":"component:sqlmodel_access","to":"ext:postgres","label":"SQL over psycopg"}}
 {"seq":33,"pass":3,"event":"freeze_pass","payload":{"pass":3}}
+{"seq":34,"pass":4,"event":"refine_label","payload":{"id":"sys:full_stack_app","label":"FastAPI full-stack template application"}}
+{"seq":35,"pass":4,"event":"freeze_pass","payload":{"pass":4}}

@@ -18,6 +18,11 @@ flowchart TB
     comp_handlers -->|"Uses DB session / CRUD"| comp_sql
   end
 
+  subgraph sys_wrap["sys:full_stack_app — FastAPI full-stack template application"]
+    c_nginx
+    c_api
+  end
+
   actor_end_user["actor:end_user<br/>End user"]
   ext_postgres["ext:postgres<br/>PostgreSQL"]
   ext_sentry["ext:sentry<br/>Sentry"]
