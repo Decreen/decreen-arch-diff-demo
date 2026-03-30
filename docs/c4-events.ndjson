@@ -1,1 +1,11 @@
 {"seq":1,"pass":0,"event":"group_nodes","payload":{"id":"group:bootstrap","label":"C4 generation bootstrap","members":[]}}
+{"seq":2,"pass":1,"event":"add_actor","payload":{"id":"actor:end_user","label":"End user"}}
+{"seq":3,"pass":1,"event":"add_external","payload":{"id":"ext:postgres","label":"PostgreSQL"}}
+{"seq":4,"pass":1,"event":"add_external","payload":{"id":"ext:sentry","label":"Sentry"}}
+{"seq":5,"pass":1,"event":"add_external","payload":{"id":"ext:outbound_email","label":"Outbound email (SMTP / mail delivery)"}}
+{"seq":6,"pass":1,"event":"group_nodes","payload":{"id":"group:pass1-deployables","label":"Runtime deployables (from packages and Dockerfiles)","members":["frontend_spa","backend_fastapi"]}}
+{"seq":7,"pass":1,"event":"add_edge","payload":{"id":"edge:actor_to_deployables","from":"actor:end_user","to":"group:pass1-deployables","label":"Uses application"}}
+{"seq":8,"pass":1,"event":"add_edge","payload":{"id":"edge:deployables_to_postgres","from":"group:pass1-deployables","to":"ext:postgres","label":"Persists data"}}
+{"seq":9,"pass":1,"event":"add_edge","payload":{"id":"edge:deployables_to_sentry","from":"group:pass1-deployables","to":"ext:sentry","label":"Error / performance telemetry"}}
+{"seq":10,"pass":1,"event":"add_edge","payload":{"id":"edge:deployables_to_email","from":"group:pass1-deployables","to":"ext:outbound_email","label":"Transactional email"}}
+{"seq":11,"pass":1,"event":"freeze_pass","payload":{"pass":1}}

@@ -1,0 +1,46 @@
+{
+  "pass": 1,
+  "seq_max": 11,
+  "actors": [
+    {
+      "id": "actor:end_user",
+      "label": "End user",
+      "evidence": ["Implicit consumer of SPA (frontend/package.json: vite dev/build scripts)."]
+    }
+  ],
+  "externals": [
+    {
+      "id": "ext:postgres",
+      "label": "PostgreSQL",
+      "evidence": ["backend/pyproject.toml: psycopg[binary], sqlmodel, alembic."]
+    },
+    {
+      "id": "ext:sentry",
+      "label": "Sentry",
+      "evidence": ["backend/pyproject.toml: sentry-sdk[fastapi]."]
+    },
+    {
+      "id": "ext:outbound_email",
+      "label": "Outbound email (SMTP / mail delivery)",
+      "evidence": ["backend/pyproject.toml: emails, jinja2."]
+    }
+  ],
+  "deployables": [
+    {
+      "local_name": "frontend_spa",
+      "label": "Frontend SPA (Vite + React)",
+      "evidence": ["frontend/package.json: vite, react, react-dom; frontend/Dockerfile."]
+    },
+    {
+      "local_name": "backend_fastapi",
+      "label": "Backend API (FastAPI)",
+      "evidence": ["backend/pyproject.toml: fastapi[standard]; backend/Dockerfile."]
+    }
+  ],
+  "edges_in_stream": [
+    "edge:actor_to_deployables",
+    "edge:deployables_to_postgres",
+    "edge:deployables_to_sentry",
+    "edge:deployables_to_email"
+  ]
+}
