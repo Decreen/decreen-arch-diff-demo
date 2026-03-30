@@ -1,1 +1,13 @@
 {"seq":1,"pass":0,"event":"group_nodes","payload":{"id":"group:bootstrap","label":"C4 generation bootstrap","members":[]}}
+{"seq":2,"pass":1,"event":"add_actor","payload":{"id":"actor:end_user","label":"Web user"}}
+{"seq":3,"pass":1,"event":"add_external","payload":{"id":"ext:smtp","label":"SMTP mail server"}}
+{"seq":4,"pass":1,"event":"add_external","payload":{"id":"ext:sentry","label":"Sentry (error monitoring)"}}
+{"seq":5,"pass":1,"event":"add_external","payload":{"id":"ext:acme","label":"ACME / Let's Encrypt (TLS)"}}
+{"seq":6,"pass":1,"event":"group_nodes","payload":{"id":"group:runtime_deployables","label":"Compose runtime services","members":["container:backend","container:frontend","container:db","container:proxy","container:adminer","container:prestart"]}}
+{"seq":7,"pass":1,"event":"add_edge","payload":{"id":"edge:e1","from":"actor:end_user","to":"container:frontend","label":"uses dashboard"}}
+{"seq":8,"pass":1,"event":"add_edge","payload":{"id":"edge:e2","from":"container:frontend","to":"container:backend","label":"HTTPS API calls"}}
+{"seq":9,"pass":1,"event":"add_edge","payload":{"id":"edge:e3","from":"container:backend","to":"container:db","label":"SQL"}}
+{"seq":10,"pass":1,"event":"add_edge","payload":{"id":"edge:e4","from":"container:backend","to":"ext:smtp","label":"send email"}}
+{"seq":11,"pass":1,"event":"add_edge","payload":{"id":"edge:e5","from":"container:backend","to":"ext:sentry","label":"telemetry (non-local)"}}
+{"seq":12,"pass":1,"event":"add_edge","payload":{"id":"edge:e6","from":"container:proxy","to":"ext:acme","label":"TLS certificates"}}
+{"seq":13,"pass":1,"event":"freeze_pass","payload":{"pass":1}}

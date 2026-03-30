@@ -1,0 +1,59 @@
+{
+  "pass": 1,
+  "actors": [
+    {
+      "id": "actor:end_user",
+      "label": "Web user",
+      "evidence": ["frontend served to browser (compose.yml traefik Host dashboard.*)"]
+    }
+  ],
+  "externals": [
+    {
+      "id": "ext:smtp",
+      "label": "SMTP mail server",
+      "evidence": ["backend/app/core/config.py SMTP_* settings", "compose.yml backend SMTP_* env"]
+    },
+    {
+      "id": "ext:sentry",
+      "label": "Sentry (error monitoring)",
+      "evidence": ["backend/app/main.py sentry_sdk.init when SENTRY_DSN set"]
+    },
+    {
+      "id": "ext:acme",
+      "label": "ACME / Let's Encrypt (TLS)",
+      "evidence": ["compose.yml traefik tls.certresolver=le labels on backend/frontend/adminer"]
+    }
+  ],
+  "deployables": [
+    {
+      "id": "container:backend",
+      "compose_service": "backend",
+      "evidence": ["compose.yml service backend", "backend/Dockerfile", "backend/app/main.py FastAPI"]
+    },
+    {
+      "id": "container:frontend",
+      "compose_service": "frontend",
+      "evidence": ["compose.yml service frontend", "frontend/Dockerfile", "frontend/vite.config.ts"]
+    },
+    {
+      "id": "container:db",
+      "compose_service": "db",
+      "evidence": ["compose.yml postgres:18 image"]
+    },
+    {
+      "id": "container:proxy",
+      "compose_service": "proxy",
+      "evidence": ["compose.override.yml traefik:3.6 reverse proxy"]
+    },
+    {
+      "id": "container:adminer",
+      "compose_service": "adminer",
+      "evidence": ["compose.yml adminer image"]
+    },
+    {
+      "id": "container:prestart",
+      "compose_service": "prestart",
+      "evidence": ["compose.yml prestart runs scripts/prestart.sh before backend"]
+    }
+  ]
+}
