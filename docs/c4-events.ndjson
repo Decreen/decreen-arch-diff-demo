@@ -32,3 +32,5 @@
 {"seq":32,"pass":3,"event":"add_edge","payload":{"id":"edge:openapi_to_handlers","from":"component:openapi_client","to":"component:http_route_handlers","label":"HTTPS JSON"}}
 {"seq":33,"pass":3,"event":"add_edge","payload":{"id":"edge:engine_to_pg","from":"component:sqlalchemy_engine","to":"component:postgres_server","label":"SQL over network"}}
 {"seq":34,"pass":3,"event":"freeze_pass","payload":{"pass":3}}
+{"seq":35,"pass":4,"event":"refine_label","payload":{"id":"sys:fullstack_app","label":"Full-stack dashboard and API"}}
+{"seq":36,"pass":4,"event":"freeze_pass","payload":{"pass":4}}
