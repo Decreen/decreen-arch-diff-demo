@@ -11,3 +11,16 @@
 {"seq":11,"pass":1,"event":"add_edge","payload":{"id":"edge:system_to_smtp","from":"group:l1_system","to":"ext:smtp","label":"Outbound email (when configured)"}}
 {"seq":12,"pass":1,"event":"add_edge","payload":{"id":"edge:system_to_sentry","from":"group:l1_system","to":"ext:sentry","label":"Error telemetry (non-local env)"}}
 {"seq":13,"pass":1,"event":"freeze_pass","payload":{"pass":1,"note":"Runtime inventory from source and Docker/entrypoints only"}}
+{"seq":14,"pass":2,"event":"set_system_boundary","payload":{"id":"sys:full_stack","label":"Full-stack web application"}}
+{"seq":15,"pass":2,"event":"add_container","payload":{"id":"container:spa_web","label":"SPA + static delivery (Vite build, Nginx)"}}
+{"seq":16,"pass":2,"event":"add_container","payload":{"id":"container:fastapi_api","label":"HTTP API service (FastAPI)"}}
+{"seq":17,"pass":2,"event":"add_container","payload":{"id":"container:postgres_db","label":"PostgreSQL database server"}}
+{"seq":18,"pass":2,"event":"add_container","payload":{"id":"container:prestart_job","label":"Prestart job (migrations + initial data)"}}
+{"seq":19,"pass":2,"event":"exclude_candidate","payload":{"id":"candidate:adminer","reason":"Adminer in compose.yml is ancillary DB UI, not core application runtime"}}
+{"seq":20,"pass":2,"event":"exclude_candidate","payload":{"id":"candidate:traefik_process","reason":"Traefik appears only via external network and labels in compose.yml; reverse-proxy process not defined as code artifact here"}}
+{"seq":21,"pass":2,"event":"add_edge","payload":{"id":"edge:spa_to_api","from":"container:spa_web","to":"container:fastapi_api","label":"HTTPS / JSON API (VITE_API_URL)"}}
+{"seq":22,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_db","from":"container:fastapi_api","to":"container:postgres_db","label":"SQLAlchemy / psycopg"}}
+{"seq":23,"pass":2,"event":"add_edge","payload":{"id":"edge:prestart_to_db","from":"container:prestart_job","to":"container:postgres_db","label":"Alembic migrations + seed scripts"}}
+{"seq":24,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_smtp","from":"container:fastapi_api","to":"ext:smtp","label":"SMTP (when configured)"}}
+{"seq":25,"pass":2,"event":"add_edge","payload":{"id":"edge:api_to_sentry","from":"container:fastapi_api","to":"ext:sentry","label":"Sentry SDK"}}
+{"seq":26,"pass":2,"event":"freeze_pass","payload":{"pass":2,"note":"Containers from compose.yml services and Dockerfiles"}}

@@ -1,0 +1,40 @@
+{
+  "pass": 2,
+  "system_boundary": {
+    "id": "sys:full_stack",
+    "label": "Full-stack web application"
+  },
+  "containers": [
+    {
+      "id": "container:spa_web",
+      "label": "SPA + static delivery (Vite build, Nginx)",
+      "evidence": ["compose.yml service frontend; frontend/Dockerfile nginx serves dist"]
+    },
+    {
+      "id": "container:fastapi_api",
+      "label": "HTTP API service (FastAPI)",
+      "evidence": ["compose.yml service backend; backend/Dockerfile CMD fastapi run app/main.py"]
+    },
+    {
+      "id": "container:postgres_db",
+      "label": "PostgreSQL database server",
+      "evidence": ["compose.yml service db image postgres:18"]
+    },
+    {
+      "id": "container:prestart_job",
+      "label": "Prestart job (migrations + initial data)",
+      "evidence": ["compose.yml service prestart command bash scripts/prestart.sh"]
+    }
+  ],
+  "excluded": [
+    {
+      "id": "candidate:adminer",
+      "reason": "Adminer in compose.yml is ancillary DB UI, not core application runtime"
+    },
+    {
+      "id": "candidate:traefik_process",
+      "reason": "Traefik appears only via external network and labels in compose.yml; reverse-proxy process not defined as code artifact here"
+    }
+  ],
+  "seq_range": [14, 26]
+}
