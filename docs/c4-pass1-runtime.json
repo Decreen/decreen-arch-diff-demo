@@ -1,0 +1,20 @@
+{
+  "pass": 1,
+  "actors": [
+    {"id": "actor:app_user", "label": "End user", "evidence": "compose.yml Traefik Host rules for dashboard and API"}
+  ],
+  "externals": [
+    {"id": "ext:postgres", "label": "PostgreSQL", "evidence": "compose.yml service db image postgres:18"},
+    {"id": "ext:traefik", "label": "Traefik", "evidence": "compose.yml traefik labels on frontend, backend, adminer"},
+    {"id": "ext:smtp", "label": "SMTP", "evidence": "compose.yml backend/prestart SMTP_HOST, SMTP_USER, SMTP_PASSWORD"},
+    {"id": "ext:sentry", "label": "Sentry", "evidence": "backend/app/main.py sentry_sdk.init when SENTRY_DSN set"},
+    {"id": "ext:adminer", "label": "Adminer", "evidence": "compose.yml service adminer image adminer"}
+  ],
+  "deployables": [
+    {"name": "backend", "evidence": "compose.yml service backend, Dockerfile backend/Dockerfile, FastAPI in backend/app/main.py"},
+    {"name": "frontend", "evidence": "compose.yml service frontend, Dockerfile frontend/Dockerfile"},
+    {"name": "prestart", "evidence": "compose.yml service prestart command scripts/prestart.sh"},
+    {"name": "db", "evidence": "compose.yml service db"},
+    {"name": "adminer", "evidence": "compose.yml service adminer"}
+  ]
+}
