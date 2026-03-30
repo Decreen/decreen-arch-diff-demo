@@ -1,0 +1,40 @@
+{
+  "pass": 1,
+  "actors": [
+    {
+      "id": "actor:end_user",
+      "label": "End user (browser)",
+      "evidence": ["frontend/package.json scripts use Vite dev server; SPA consumed in browser"]
+    }
+  ],
+  "externals": [
+    {
+      "id": "ext:postgresql",
+      "label": "PostgreSQL",
+      "evidence": ["backend/app/core/config.py SQLALCHEMY_DATABASE_URI uses postgresql+psycopg"]
+    },
+    {
+      "id": "ext:smtp",
+      "label": "SMTP email service",
+      "evidence": ["backend/app/core/config.py SMTP_* and email-related settings"]
+    },
+    {
+      "id": "ext:sentry",
+      "label": "Sentry (error monitoring)",
+      "evidence": ["backend/app/main.py sentry_sdk.init when SENTRY_DSN set and ENVIRONMENT != local"]
+    }
+  ],
+  "deployables": [
+    {
+      "id": "group:deploy_frontend",
+      "label": "Frontend static assets + Nginx",
+      "evidence": ["frontend/Dockerfile multi-stage: bun build then nginx serves /usr/share/nginx/html"]
+    },
+    {
+      "id": "group:deploy_backend",
+      "label": "FastAPI backend service",
+      "evidence": ["backend/Dockerfile CMD fastapi run --workers 4 app/main.py"]
+    }
+  ],
+  "seq_range": [2, 13]
+}
