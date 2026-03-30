@@ -8,3 +8,16 @@
 {"seq":8,"pass":1,"event":"group_nodes","payload":{"id":"group:deployables","label":"Compose runtime services","members":[]}}
 {"seq":9,"pass":1,"event":"add_edge","payload":{"id":"edge:user_to_traefik","from":"actor:app_user","to":"ext:traefik","label":"Uses HTTPS (dashboard, API)"}}
 {"seq":10,"pass":1,"event":"freeze_pass","payload":{"pass":1}}
+{"seq":11,"pass":2,"event":"set_system_boundary","payload":{"id":"sys:fullstack_app","label":"Full-stack web application"}}
+{"seq":12,"pass":2,"event":"add_container","payload":{"id":"container:frontend","label":"Web frontend","technology":"Vite / SPA"}}
+{"seq":13,"pass":2,"event":"add_container","payload":{"id":"container:backend","label":"API backend","technology":"FastAPI"}}
+{"seq":14,"pass":2,"event":"add_container","payload":{"id":"container:postgres","label":"PostgreSQL database","technology":"PostgreSQL 18"}}
+{"seq":15,"pass":2,"event":"exclude_candidate","payload":{"id":"candidate:prestart_job","reason":"One-shot migration/init job in compose; not a long-lived container"}}
+{"seq":16,"pass":2,"event":"exclude_candidate","payload":{"id":"candidate:adminer_service","reason":"Optional DB admin UI; not core application runtime"}}
+{"seq":17,"pass":2,"event":"add_edge","payload":{"id":"edge:traefik_to_frontend","from":"ext:traefik","to":"container:frontend","label":"Routes HTTPS"}}
+{"seq":18,"pass":2,"event":"add_edge","payload":{"id":"edge:traefik_to_backend","from":"ext:traefik","to":"container:backend","label":"Routes HTTPS"}}
+{"seq":19,"pass":2,"event":"add_edge","payload":{"id":"edge:frontend_to_backend","from":"container:frontend","to":"container:backend","label":"HTTPS API calls"}}
+{"seq":20,"pass":2,"event":"add_edge","payload":{"id":"edge:backend_to_postgres","from":"container:backend","to":"container:postgres","label":"SQL"}}
+{"seq":21,"pass":2,"event":"add_edge","payload":{"id":"edge:backend_to_smtp","from":"container:backend","to":"ext:smtp","label":"Send email"}}
+{"seq":22,"pass":2,"event":"add_edge","payload":{"id":"edge:backend_to_sentry","from":"container:backend","to":"ext:sentry","label":"Error telemetry"}}
+{"seq":23,"pass":2,"event":"freeze_pass","payload":{"pass":2}}
