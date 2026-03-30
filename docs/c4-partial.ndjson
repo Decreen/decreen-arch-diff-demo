@@ -1,0 +1,5 @@
+{"pass":0,"status":"bootstrapped","artifact":"docs/c4-live.mermaid.md","seq_max":1}
+{"pass":1,"status":"complete","artifact":"docs/c4-pass1-runtime.json","seq_max":11}
+{"pass":2,"status":"complete","artifact":"docs/c4-pass2-l2.json","seq_max":22}
+{"pass":3,"status":"complete","artifact":"docs/c4-pass3-l3.json","seq_max":33}
+{"pass":4,"status":"complete","artifact":"docs/c4-architecture.mermaid.md","seq_max":35}

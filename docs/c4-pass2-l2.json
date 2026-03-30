@@ -1,0 +1,47 @@
+{
+  "pass": 2,
+  "seq_max": 22,
+  "system_boundary": {
+    "id": "sys:full_stack_app",
+    "label": "Full-stack application (FastAPI + Vite SPA)",
+    "evidence": [
+      "Monorepo: root package.json workspaces frontend; backend/pyproject.toml FastAPI app package name app.",
+      "backend/Dockerfile CMD fastapi run app/main.py; frontend/Dockerfile nginx serving dist."
+    ]
+  },
+  "containers": [
+    {
+      "id": "container:nginx_spa",
+      "label": "Frontend static site (Nginx serving Vite build)",
+      "evidence": [
+        "frontend/Dockerfile: multi-stage bun build then nginx:1 serving /usr/share/nginx/html",
+        "frontend/nginx.conf: static SPA with try_files"
+      ]
+    },
+    {
+      "id": "container:fastapi_api",
+      "label": "Backend HTTP API (FastAPI)",
+      "evidence": [
+        "backend/Dockerfile CMD fastapi run --workers 4 app/main.py",
+        "backend/app/main.py: FastAPI app, include_router api_router"
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "id": "candidate:repo_root_node_service",
+      "reason": "Root package.json only orchestrates workspace scripts; no standalone Node service runtime."
+    },
+    {
+      "id": "candidate:playwright_image_prod",
+      "reason": "frontend/Dockerfile.playwright supports Playwright tests, not production app runtime."
+    }
+  ],
+  "l2_edges": [
+    "edge:actor_uses_spa",
+    "edge:browser_to_api",
+    "edge:api_to_postgres",
+    "edge:api_to_sentry",
+    "edge:api_to_email"
+  ]
+}

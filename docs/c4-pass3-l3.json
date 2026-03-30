@@ -1,0 +1,58 @@
+{
+  "pass": 3,
+  "seq_max": 33,
+  "selected_containers": [
+    {
+      "id": "container:nginx_spa",
+      "components": [
+        {
+          "id": "component:nginx_router",
+          "kind": "router",
+          "capabilities": ["routing"],
+          "evidence": ["frontend/nginx.conf: server block, location /, try_files"]
+        },
+        {
+          "id": "component:static_spa_delivery",
+          "kind": "storage",
+          "capabilities": ["state"],
+          "evidence": ["frontend/Dockerfile: COPY dist to nginx html; static asset delivery"]
+        }
+      ]
+    },
+    {
+      "id": "container:fastapi_api",
+      "components": [
+        {
+          "id": "component:api_aggregate_router",
+          "kind": "router",
+          "capabilities": ["API", "routing"],
+          "evidence": ["backend/app/main.py: include_router(api_router); backend/app/api/main.py: APIRouter includes route modules"]
+        },
+        {
+          "id": "component:http_route_handlers",
+          "kind": "service_layer",
+          "capabilities": ["processing", "API"],
+          "evidence": ["backend/app/api/routes/*.py: FastAPI route handlers"]
+        },
+        {
+          "id": "component:sqlmodel_access",
+          "kind": "data_access",
+          "capabilities": ["state", "processing"],
+          "evidence": ["backend/app/core/db.py: create_engine, Session; backend/app/crud.py: SQLModel CRUD"]
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "id": "candidate:alembic_as_runtime_service",
+      "reason": "Alembic lives under backend/app/alembic as migration tooling, not a separate long-running container."
+    }
+  ],
+  "l3_edges": [
+    "edge:nginx_router_to_static",
+    "edge:aggregate_to_handlers",
+    "edge:handlers_to_sqlmodel",
+    "edge:sqlmodel_to_postgres"
+  ]
+}
